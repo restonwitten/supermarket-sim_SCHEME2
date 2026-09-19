@@ -159,4 +159,3 @@ actually mutates at runtime. `SKU` no longer duplicates these fields (see
 "SKU Merchandising" above), so that part is settled; what's still open is
 `SKU_Merchandising`'s own shape, and that's a question for once the event
 model makes clear what's actually mutable — hold off until then.
-bw
