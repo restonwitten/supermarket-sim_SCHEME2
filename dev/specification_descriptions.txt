@@ -1,0 +1,113 @@
+The definitions defined in this section should be used to interpret the examples provided in the Specification Instructions.
+
+*** BEGIN Abs1 SPECIFICATION DESCRIPTION ***************
+Abs1 - <element purpose>
+Usage Examples
+    For all Examples of Abs1 Usage:
+    ...
+    Examples of Abs1 Usage:
+    ...
+    Counter-examples of Abs1 Usage:
+    ...
+
+Required Environment
+...
+*** END Abs1 SPECIFICATION DESCRIPTION ***************
+
+*** BEGIN Abs1.name SPECIFICATION DESCRIPTION ***************
+Abs1.name - <element purpose>
+Usage Examples
+    For all Examples of Abs1.name Usage:
+    ...
+    Examples of Abs1.name Usage:
+    ...
+    Counter-examples of Abs1.name Usage:
+    ...
+
+Required Environment
+...
+*** END Abs1.name SPECIFICATION DESCRIPTION ***************
+
+*** BEGIN Abs1.amount SPECIFICATION DESCRIPTION ***************
+Abs1.amount - <element purpose>
+Usage Examples
+    For all Examples of Abs1.amount Usage:
+    ...
+    Examples of Abs1.amount Usage:
+    ...
+    Counter-examples of Abs1.amount Usage:
+    ...
+
+Required Environment
+...
+*** END Abs1.amount SPECIFICATION DESCRIPTION ***************
+
+*** BEGIN Abs1.abs1m1 SPECIFICATION DESCRIPTION ***************
+Abs1.abs1m1 - <element purpose>
+Usage Examples
+    For all Examples of Abs1.abs1m1 Usage:
+    ...
+    Examples of Abs1.abs1m1 Usage:
+    ...
+    Counter-examples of Abs1.abs1m1 Usage:
+    ...
+
+Required Environment
+...
+*** END Abs1.abs1m1 SPECIFICATION DESCRIPTION ***************
+
+*** BEGIN Imp1 SPECIFICATION DESCRIPTION ***************
+Imp1 - <element purpose>
+Usage Examples
+    For all Examples of Imp1 Usage:
+    ...
+    Examples of Imp1 Usage:
+    ...
+    Counter-examples of Imp1 Usage:
+    ...
+
+Required Environment
+...
+*** END Imp1 SPECIFICATION DESCRIPTION ***************
+
+*** BEGIN Imp2 SPECIFICATION DESCRIPTION ***************
+Imp2 - <element purpose>
+Usage Examples
+    For all Examples of Imp2 Usage:
+    ...
+    Examples of Imp2 Usage:
+    ...
+    Counter-examples of Imp2 Usage:
+    ...
+
+Required Environment
+...
+*** END Imp2 SPECIFICATION DESCRIPTION ***************
+
+*** BEGIN AType SPECIFICATION DESCRIPTION ***************
+AType - <element purpose>
+Usage Examples
+    For all Examples of AType Usage:
+    ...
+    Examples of AType Usage:
+    ...
+    Counter-examples of AType Usage:
+    ...
+
+Required Environment
+...
+*** END AType SPECIFICATION DESCRIPTION ***************
+
+*** BEGIN Imp3 SPECIFICATION DESCRIPTION ***************
+Imp3 - <element purpose>
+Usage Examples
+    For all Examples of Imp3 Usage:
+    ...
+    Examples of Imp3 Usage:
+    ...
+    Counter-examples of Imp3 Usage:
+    ...
+
+Required Environment
+...
+*** END Imp3 SPECIFICATION DESCRIPTION ***************

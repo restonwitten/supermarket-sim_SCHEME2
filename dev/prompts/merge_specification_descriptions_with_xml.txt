@@ -1,0 +1,46 @@
+Update a Visual Paradigm XML model with documentation text from a specification file.
+
+INPUTS
+- project.xml: the Visual Paradigm model file
+- specification_descriptions.txt: the specification file
+
+1. PARSE THE SPECIFICATION FILE INTO A LOOKUP TABLE
+Each block has this form:
+    *** BEGIN <key> SPECIFICATION DESCRIPTION ***************
+    <text lines>
+    *** END <key> SPECIFICATION DESCRIPTION ***************
+The key is <key>. The value is the lines between BEGIN and END, kept exactly as written (indentation and blank lines included).
+
+2. SELECT ELEMENTS TO UPDATE
+For each <Class> that is a direct child of <Models>:
+- The Class itself, with key = <ClassName>
+- Each direct child of that Class's <ModelChildren> (attributes, operations, etc.), with key = <ClassName>.<ChildName>
+Names come from each element's Name attribute.
+
+3. UPDATE EACH SELECTED ELEMENT
+Find the text associated with its key in the lookup table
+If the key is not found then add the key and and the template merged with the key to the lookup table.
+Otherwise:
+    Change only these two attributes on the element itself, not on its descendants:
+    - Documentation = ""
+    - Documentation_plain = the lookup value for its key. Add the attribute if it doesn't exist.
+
+Template (replace <key> with the element's key):
+<key> - <element purpose>
+Usage Examples
+    For all Examples of <key> Usage:
+    ...
+    Examples of <key> Usage:
+    ...
+    Counter-examples of <key> Usage:
+    ...
+
+Required Environment
+...
+
+4. REBUILD SPECIFICATION DESCRIPTION FILE
+    Use re-create the text of the specification file with the lookup table, wrapping each description with the BEGIN/END notation used in this file.
+5. OUTPUT
+- Write the updated project.xml and the updated specification file for download. Leave everything else in the file unchanged.
+- Report a table of every updated key and whether its text came from the specification file or the template.
+- List any specification keys that matched no element, since these usually mean a name mismatch between the two files.
