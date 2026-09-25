@@ -1,0 +1,20 @@
+Create a text file of specification descriptions from the Documentation_plain attribute value, a model_element_name serving as the link between the Visual Paradigm version of the model and the specification descriptions file's version.
+
+INPUTS
+- the Visual Paradigm model, as an XML file.
+- the existing file to replacing current content with specification descriptions.
+
+1. CLEAR THE SPECIFICATION DESCRIPTIONS FILE
+
+- Clear any specification desriptions from the file given
+
+2. DEFINE DATA AND PROCEDURES FOR THE PUSH
+
+- The template for a single specification desription block is:
+**\* BEGIN <model_element_name> SPECIFICATION DESCRIPTION ******\*********
+<sd_text>
+**\* END <key> SPECIFICATION DESCRIPTION ******\*********
+
+3. NAVIGATE THE VP XML TREE PUSHING DOCUMENTATION TO SPECIFICATION DESCRIPTIONS
+
+4. RETURN THE SPECIFICATION DESCRIPTIONS JUST ASSEMBLED
