@@ -40,6 +40,7 @@ Required Environment
 
 4. REBUILD SPECIFICATION DESCRIPTION FILE
     Use re-create the text of the specification file with the lookup table, wrapping each description with the BEGIN/END notation used in this file.
+    
 5. OUTPUT
 - Write the updated project.xml and the updated specification file for download. Leave everything else in the file unchanged.
 - Report a table of every updated key and whether its text came from the specification file or the template.

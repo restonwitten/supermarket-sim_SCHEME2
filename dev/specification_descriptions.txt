@@ -1,113 +1,283 @@
-The definitions defined in this section should be used to interpret the examples provided in the Specification Instructions.
+*** BEGIN SPEC Space ***
+Space
 
-*** BEGIN Abs1 SPECIFICATION DESCRIPTION ***************
-Abs1 - <element purpose>
-Usage Examples
-    For all Examples of Abs1 Usage:
-    ...
-    Examples of Abs1 Usage:
-    ...
-    Counter-examples of Abs1 Usage:
-    ...
+*** BEGIN CONTRACT Space ***
+PURPOSE: <model_element_purpose>
+USAGE_EXAMPLES:
+    EXAMPLE_SETUP:
+        <example_setup>
+    EXAMPLES_OF_NORMAL_USAGE:
+        <examples_of_normal_usage>
+    EXAMPLES_OF_COUNTER_USAGE:
+        <examples_of_counter_usage>
 
-Required Environment
+REQUIRED_ENVIRONMENT:
+    <required_environment>
+*** END CONTRACT Space ***
+*** END SPEC Space ***
+
+*** BEGIN SPEC Space.Space ***
+Space constructor 
+
+Unlike other AbsTreeNode sub-types, Space's constructor does creates the name using the instance of the SpaceType passed to it.  A name is not passed in a Space constructor. 
+
+To obtain the name for the Space instance being constructed, the method !!!!! is invoked to create the name for the space.
+
+*** BEGIN CONTRACT Space.Space ***
+PURPOSE: <model_element_purpose>
+USAGE_EXAMPLES:
+    EXAMPLE_SETUP:
+        <example_setup>
+    EXAMPLES_OF_NORMAL_USAGE:
+        <examples_of_normal_usage>
+    EXAMPLES_OF_COUNTER_USAGE:
+        <examples_of_counter_usage>
+
+REQUIRED_ENVIRONMENT:
+    <required_environment>
+*** END CONTRACT Space.Space ***
+*** END SPEC Space.Space ***
+
+*** BEGIN SPEC SpaceType ***
+SpaceType
+
+*** BEGIN CONTRACT SpaceType ***
+PURPOSE: <model_element_purpose>
+USAGE_EXAMPLES:
+    EXAMPLE_SETUP:
+        <example_setup>
+    EXAMPLES_OF_NORMAL_USAGE:
+        <examples_of_normal_usage>
+    EXAMPLES_OF_COUNTER_USAGE:
+        <examples_of_counter_usage>
+
+REQUIRED_ENVIRONMENT:
+    <required_environment>
+*** END CONTRACT SpaceType ***
+*** END SPEC SpaceType ***
+
+*** BEGIN SPEC SpaceType.type_count ***
+type_count
+
+*** BEGIN CONTRACT SpaceType.type_count ***
+PURPOSE: <model_element_purpose>
+USAGE_EXAMPLES:
+    EXAMPLE_SETUP:
+        <example_setup>
+    EXAMPLES_OF_NORMAL_USAGE:
+        <examples_of_normal_usage>
+    EXAMPLES_OF_COUNTER_USAGE:
+        <examples_of_counter_usage>
+
+REQUIRED_ENVIRONMENT:
+    <required_environment>
+*** END CONTRACT SpaceType.type_count ***
+*** END SPEC SpaceType.type_count ***
+
+*** BEGIN SPEC SpaceType.generate_space_name ***
+generate_space_name 
+
+Given a string of the form "<<word>> <<word>>..." returns "<<WORD>>_<<WORD>>..._<<n>>",
+upcasing the words and converting " " characters to underscores ("_") and then appending an underscore and the pre-incremented value of type_count.
+
+*** BEGIN CONTRACT SpaceType.generate_space_name ***
+PURPOSE: <model_element_purpose>
+USAGE_EXAMPLES:
+    EXAMPLE_SETUP:
+        <example_setup>
+    EXAMPLES_OF_NORMAL_USAGE:
+        <examples_of_normal_usage>
+    EXAMPLES_OF_COUNTER_USAGE:
+        <examples_of_counter_usage>
+
+REQUIRED_ENVIRONMENT:
+    <required_environment>
+*** END CONTRACT SpaceType.generate_space_name ***
+*** END SPEC SpaceType.generate_space_name ***
+
+*** BEGIN SPEC BusinessUnit ***
+BusinessUnit
+
+*** BEGIN CONTRACT BusinessUnit ***
+PURPOSE: <model_element_purpose>
+USAGE_EXAMPLES:
+    EXAMPLE_SETUP:
+        <example_setup>
+    EXAMPLES_OF_NORMAL_USAGE:
+        <examples_of_normal_usage>
+    EXAMPLES_OF_COUNTER_USAGE:
+        <examples_of_counter_usage>
+
+REQUIRED_ENVIRONMENT:
+    <required_environment>
+*** END CONTRACT BusinessUnit ***
+*** END SPEC BusinessUnit ***
+
+*** BEGIN SPEC AbsTreeNode ***
+AbsTreeNode
+
+This class should implement all of the functionality that is common to all of its implementing subtypes.
+
+This is an abstract class to serve as a base class and cannot itself be instantiated.
+
+All of the attribute state holding members should be private and only assessable by getter methods.
+
+Each of these attributes will be set-able via private setter methods.
+
+The instance construction process for any AbsTreeNode sub-type needs to :
+Capture the state of the name and parent in the instance being constructed
+Ensure that the name is unique across the set of all instances of the AbsTreeNode
+subtype created in the running instance of the controlling interpreter.
+When classes are loaded, the state used to enforce uniqueness of name values across AbsTreeNode subtype classes is reset.
+If a parent is provided, it needs to ensure that the parent is of the same class as the instance being created.  As a counter-example, a BusinessUnit instance cannot be the parent of a Space instance, e.g., :
+bu = BusinessUnit("Department")
+... st = SpaceType("Gondola")
+... s = Space(st, bu) -- No no
+
+The instance being created will give itself to the parent to be added as its child,
+ 
+Regarding implementation, a dict{str,<<implementing AbsTreeNode subtype class name>>] where the key is the name and the <<implementing AbsTreeNode subtype class name>> is the set of instances of the implementing subtype with the name given. This dict instance should live in the loaded AbsTreeNode class. </p>
+At construction, after the state of the instance has been validated, if the instance name exists in the in the uniqueness-checking dict then a ValueError is thrown.
+Otherwise a new entry is made in the dict with the name and a reference to the new instance.
+
+*** BEGIN CONTRACT AbsTreeNode ***
+PURPOSE: <model_element_purpose>
+USAGE_EXAMPLES:
+    EXAMPLE_SETUP:
+        <example_setup>
+    EXAMPLES_OF_NORMAL_USAGE:
+        <examples_of_normal_usage>
+    EXAMPLES_OF_COUNTER_USAGE:
+        <examples_of_counter_usage>
+
+REQUIRED_ENVIRONMENT:
+    <required_environment>
+*** END CONTRACT AbsTreeNode ***
+*** END SPEC AbsTreeNode ***
+
+*** BEGIN SPEC AbsTreeNode._parent ***
+parent
+
+*** BEGIN CONTRACT AbsTreeNode._parent ***
+PURPOSE: <model_element_purpose>
+USAGE_EXAMPLES:
+    EXAMPLE_SETUP:
+        <example_setup>
+    EXAMPLES_OF_NORMAL_USAGE:
+        <examples_of_normal_usage>
+    EXAMPLES_OF_COUNTER_USAGE:
+        <examples_of_counter_usage>
+
+REQUIRED_ENVIRONMENT:
+    <required_environment>
+*** END CONTRACT AbsTreeNode._parent ***
+*** END SPEC AbsTreeNode._parent ***
+
+*** BEGIN SPEC AbsTreeNode._name ***
+name 
+
+The name for an instance must be unique among the set of instances of a given AbsTreeNode implementation in the running application.
+
+*** BEGIN CONTRACT AbsTreeNode._name ***
+PURPOSE: <model_element_purpose>
+USAGE_EXAMPLES:
+    EXAMPLE_SETUP:
+        <example_setup>
+    EXAMPLES_OF_NORMAL_USAGE:
+        <examples_of_normal_usage>
+    EXAMPLES_OF_COUNTER_USAGE:
+        <examples_of_counter_usage>
+
+REQUIRED_ENVIRONMENT:
+    <required_environment>
+*** END CONTRACT AbsTreeNode._name ***
+*** END SPEC AbsTreeNode._name ***
+
+*** BEGIN SPEC AbsTreeNode.nav_to_root ***
+nav_to_root 
+Performs a given operation on each node between self and its root.
+
+*** BEGIN CONTRACT AbsTreeNode.nav_to_root ***
+PURPOSE: <model_element_purpose>
+USAGE_EXAMPLES:
+    EXAMPLE_SETUP:
+        <example_setup>
+    EXAMPLES_OF_NORMAL_USAGE:
+        <examples_of_normal_usage>
+    EXAMPLES_OF_COUNTER_USAGE:
+        <examples_of_counter_usage>
+
+REQUIRED_ENVIRONMENT:
+    <required_environment>
+*** END CONTRACT AbsTreeNode.nav_to_root ***
+*** END SPEC AbsTreeNode.nav_to_root ***
+
+*** BEGIN SPEC AbsTreeNode._children ***
+*** BEGIN CONTRACT AbsTreeNode._children ***
+PURPOSE: <model_element_purpose>
+USAGE_EXAMPLES:
+    EXAMPLE_SETUP:
+        <example_setup>
+    EXAMPLES_OF_NORMAL_USAGE:
+        <examples_of_normal_usage>
+    EXAMPLES_OF_COUNTER_USAGE:
+        <examples_of_counter_usage>
+
+REQUIRED_ENVIRONMENT:
+    <required_environment>
+*** END CONTRACT AbsTreeNode._children ***
+*** END SPEC AbsTreeNode._children ***
+
+*** BEGIN SPEC AbsTreeNode.add_child ***
+add_child 
+
+Example Abstract Usage:
+imp_class = <<implementing subclass of AbsTreeNode>>
+p = imp_class(name1...) -- Create instance serving as the parent.
 ...
-*** END Abs1 SPECIFICATION DESCRIPTION ***************
+c = imp_class(name2,p) -- Create instance serving as the child to parent p
+     ---> p.add_child(c) -- add_child is accessed from the imp_class constructor and lives in AbsTreeNode.
 
-*** BEGIN Abs1.name SPECIFICATION DESCRIPTION ***************
-Abs1.name - <element purpose>
-Usage Examples
-    For all Examples of Abs1.name Usage:
-    ...
-    Examples of Abs1.name Usage:
-    ...
-    Counter-examples of Abs1.name Usage:
-    ...
 
-Required Environment
+
+Example in the context of this sim:
+
+class ProductCategory(AbsTreeNode): ...
+
+pc_root = ProductCategory(name: "Products")  -- A root (no parent) category containing base categories, like "Baby Food" (not necessarily consistent with actual business requirements).
 ...
-*** END Abs1.name SPECIFICATION DESCRIPTION ***************
+baby_food = ProductCategory(name: "Baby Food", pc_root)
+baby_meats = Product(Category(name: "Baby Meats",parent: baby_food)
+    -- From the baby meats instance construction, invoke:
+    ---> parent.add_child(self)
 
-*** BEGIN Abs1.amount SPECIFICATION DESCRIPTION ***************
-Abs1.amount - <element purpose>
-Usage Examples
-    For all Examples of Abs1.amount Usage:
-    ...
-    Examples of Abs1.amount Usage:
-    ...
-    Counter-examples of Abs1.amount Usage:
-    ...
+*** BEGIN CONTRACT AbsTreeNode.add_child ***
+PURPOSE: <model_element_purpose>
+USAGE_EXAMPLES:
+    EXAMPLE_SETUP:
+        <example_setup>
+    EXAMPLES_OF_NORMAL_USAGE:
+        <examples_of_normal_usage>
+    EXAMPLES_OF_COUNTER_USAGE:
+        <examples_of_counter_usage>
 
-Required Environment
-...
-*** END Abs1.amount SPECIFICATION DESCRIPTION ***************
+REQUIRED_ENVIRONMENT:
+    <required_environment>
+*** END CONTRACT AbsTreeNode.add_child ***
+*** END SPEC AbsTreeNode.add_child ***
 
-*** BEGIN Abs1.abs1m1 SPECIFICATION DESCRIPTION ***************
-Abs1.abs1m1 - <element purpose>
-Usage Examples
-    For all Examples of Abs1.abs1m1 Usage:
-    ...
-    Examples of Abs1.abs1m1 Usage:
-    ...
-    Counter-examples of Abs1.abs1m1 Usage:
-    ...
+*** BEGIN SPEC ProductCategory ***
+*** BEGIN CONTRACT ProductCategory ***
+PURPOSE: <model_element_purpose>
+USAGE_EXAMPLES:
+    EXAMPLE_SETUP:
+        <example_setup>
+    EXAMPLES_OF_NORMAL_USAGE:
+        <examples_of_normal_usage>
+    EXAMPLES_OF_COUNTER_USAGE:
+        <examples_of_counter_usage>
 
-Required Environment
-...
-*** END Abs1.abs1m1 SPECIFICATION DESCRIPTION ***************
-
-*** BEGIN Imp1 SPECIFICATION DESCRIPTION ***************
-Imp1 - <element purpose>
-Usage Examples
-    For all Examples of Imp1 Usage:
-    ...
-    Examples of Imp1 Usage:
-    ...
-    Counter-examples of Imp1 Usage:
-    ...
-
-Required Environment
-...
-*** END Imp1 SPECIFICATION DESCRIPTION ***************
-
-*** BEGIN Imp2 SPECIFICATION DESCRIPTION ***************
-Imp2 - <element purpose>
-Usage Examples
-    For all Examples of Imp2 Usage:
-    ...
-    Examples of Imp2 Usage:
-    ...
-    Counter-examples of Imp2 Usage:
-    ...
-
-Required Environment
-...
-*** END Imp2 SPECIFICATION DESCRIPTION ***************
-
-*** BEGIN AType SPECIFICATION DESCRIPTION ***************
-AType - <element purpose>
-Usage Examples
-    For all Examples of AType Usage:
-    ...
-    Examples of AType Usage:
-    ...
-    Counter-examples of AType Usage:
-    ...
-
-Required Environment
-...
-*** END AType SPECIFICATION DESCRIPTION ***************
-
-*** BEGIN Imp3 SPECIFICATION DESCRIPTION ***************
-Imp3 - <element purpose>
-Usage Examples
-    For all Examples of Imp3 Usage:
-    ...
-    Examples of Imp3 Usage:
-    ...
-    Counter-examples of Imp3 Usage:
-    ...
-
-Required Environment
-...
-*** END Imp3 SPECIFICATION DESCRIPTION ***************
+REQUIRED_ENVIRONMENT:
+    <required_environment>
+*** END CONTRACT ProductCategory ***
+*** END SPEC ProductCategory ***
