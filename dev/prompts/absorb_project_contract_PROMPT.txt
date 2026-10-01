@@ -1,0 +1,122 @@
+PURPOSE (one-time migration)
+
+Two files in the Claude project context, contracts_sim-contract.md and
+contracts_sim-contract-discussion.md (call them "the superseded draft"), are an
+alternate v0.2 of the sim contract. The goal of this prompt is to make them
+obsolete, so they can be deleted from the project context without losing anything
+in them that the repo's contract-creation process does not already capture.
+
+This prompt does not write a new contract. It changes the inputs to the next run of
+dev/prompts/create_contract_PROMPT.txt.
+
+INPUTS
+
+A. The superseded draft: /mnt/project/contracts_sim-contract.md and
+   /mnt/project/contracts_sim-contract-discussion.md.
+B. "The baseline," from a fresh clone of restonwitten/supermarket-sim_SCHEME2:
+   dev/prompts/create_contract_PROMPT.txt, dev/contracts/sim-contract.md,
+   dev/contracts/sim-contract-discussion.md.
+
+Use nothing else from the repo. Do not use the voice-session extract or the textbook.
+Deciding domain questions is not this task's job. If any input is missing, stop and
+say which one.
+
+Do not change terminology (for example, class names using "Category"). Terminology
+is deferred to a later pass.
+
+TASK 1 — Classify
+
+Classify every feature of A (sections, conventions, clause families, discussion
+items) as one of:
+  F — format/process: how the contract and discussion are structured, made
+      testable, or made reviewable.
+  D — domain: a clause or decision about what the model does.
+  S — already present in B with the same effect.
+
+TASK 2 — Revise create_contract_PROMPT.txt
+
+Fold every F item into the prompt as a general requirement of the creation process.
+Write each requirement so it does not reference A, its fixture EX-STORE-1, or any
+clause ID from A. Make the smallest edits that do this, and keep the existing
+wording elsewhere. At minimum, the revised prompt must require:
+
+ 1. An Examples block after every class and every routine, including creation
+    procedures: ✓ correct calls, one ✗ client call per precondition, ✗ supplier
+    results, and ✗ invariant states. This is in addition to the separate
+    contract-by-example part that the functionality file calls for.
+ 2. One shared fixture defined in named states (for example S0, S1, ...) that show
+    the store's progression, so examples state "before" and "after" by name. The
+    fixture is shipped as executable pytest fixture code (conftest.py) inside the
+    contract. It is extended only by adding to it.
+ 3. A concrete monitoring API: named modules for the model and the monitoring
+    runtime; violation exceptions carrying clause_id; selectable assertion levels
+    with a context manager and check_invariants(obj); the rule that the first
+    false precondition, in the routine's table order, is the one raised, before any
+    state changes; level NONE used only to build counter-example objects; a pure,
+    callable predicate for every ensure and invariant clause; and predicates that
+    read only the queries their clause names, so stubs can stand in for states the
+    constructors can't build.
+ 4. Explicit creation procedures for every class, built bottom-up (a container
+    takes finished, unattached children and adopts them), each with its own
+    clauses and examples. The Store's creation procedure keeps the baseline's scope.
+ 5. Queries that make frame conditions ("nothing else changes") testable, such as
+    a store snapshot, existence checks, and ID counters.
+ 6. Mutually exclusive outcome reasons (such as unplaced reasons), with a stated
+    precedence order.
+ 7. One ID prefix per class, and sequential, never-reused IDs for created records.
+ 8. An appendix indexing every clause by grounding tag ([TB], [VS], [DISC], [SIM]).
+ 9. In the discussion file: a first part, "Decisions to check first" (D-n), listing
+    every choice the run made on its own, in addition to the baseline's parts.
+10. "(new)" markers on discussion items that did not exist in the prior version.
+
+Also make these input fixes and conflict resolutions:
+
+ a. Name the app-functionality file explicitly: voice-session-sim-design-extract.md.
+    If any named input is missing, the run stops and says which one. It does not
+    substitute another source.
+ b. Narrow the exclusion rule to implementation code. The run must not use any code
+    in the repo. It must use dev/contracts/sim-contract.md and
+    dev/contracts/sim-contract-discussion.md as the prior version to revise:
+    clause IDs are kept, retired IDs are never reused, and the change log covers
+    the step from that prior version.
+ c. Normativity: the contract clauses are the sole normative specification. The
+    contract-by-example usages are required acceptance tests that the
+    implementation must pass. The per-routine Examples blocks are illustrative and
+    never add to, weaken, or contradict a clause.
+ d. Allocation is deterministic: the allocation function has exactly one correct
+    result for given inputs, specified by a canonical rule, so examples can assert
+    exact placements. Property-style postconditions stay as independently
+    checkable clauses that the canonical result satisfies.
+ e. Carry-forward (general wording, reusable on future runs): if the prior
+    discussion file contains a carry-forward part, resolve every item in it. Either
+    adopt it as a clause (logged as a D-n item) or drop it (logged with the
+    reason), and omit the carry-forward part from the new discussion file.
+
+TASK 3 — Carry forward domain content
+
+Produce an updated sim-contract-discussion.md that is the baseline discussion,
+unchanged, plus one new final part: "Carry-forward from a superseded draft."
+
+For each D item not marked S, write an entry CF-n containing:
+  - the clause or decision verbatim from A, with its A clause ID and grounding tag;
+  - the A discussion item(s) behind it (C-n, Q-n, D-n), with its stated default
+    verbatim;
+  - one line on any apparent conflict with the baseline contract, or "none
+    apparent."
+Also include as CF entries any open question in A's discussion that has no
+counterpart in the baseline discussion.
+
+The entries must be self-contained, because A will be deleted.
+
+TASK 4 — Coverage report (in chat, not a file)
+
+Give a table mapping every section and feature of A to its disposition: prompt
+requirement (cite the item number), CF-n, S (cite where it is in B), or dropped
+(with the reason). End with one sentence saying whether anything in A remains
+uncaptured. If nothing does, say that A can be deleted from the project context.
+
+OUTPUTS
+
+Two files for download, with constant names and no version info:
+create_contract_PROMPT.txt and sim-contract-discussion.md. Do not modify the repo.
+The user commits the files.
