@@ -19,3 +19,9 @@ git checkout <tag> -- <path>          # restore it into the working tree
 | `dev/prompts/VP_XML_pushes_documentation_to_specification_descriptions.txt`  | Same as above.                                                                                                                       | DbC contract                                                                                           |
 | `dev/specification_descriptions.txt`                                         | Spec-description template (usage examples / counter-examples) that the VP_XML prompts pushed to and pulled from VP.                  | Usage examples and counter-examples in the DbC contract                                                |
 | `data/store_layout.json`                                                     | Hierarchical space scaffold whose geometry was to come from a parsed diagram/model export — a retired pipeline. Not read by the app. | Output of the planned model data generator (Store layout built by the generator at app initialization) |
+
+## 2026-10-01_1 — tag `retired/2026-10-01_1`
+
+| Path                                             | Why retired                              | Superseded by   |
+| ------------------------------------------------ | ---------------------------------------- | --------------- |
+| `dev/prompts/absorb_project_contract_PROMPT.txt` | One-time run complete; no longer needed. | Not superseded. |
