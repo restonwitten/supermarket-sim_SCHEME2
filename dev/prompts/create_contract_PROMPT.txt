@@ -1,4 +1,4 @@
-Using Bertrand Meyer’s “Design By Contract”, the supermarket operations textbook in this project (modern-supermarket-operations.md) and the app-functionality file voice-session-sim-design-extract.md, create a contract that identifies what the sim app will implement when it comes to the allocation of merchandise space to products (via SKUs) as SKU placements.
+Using Bertrand Meyer’s “Design By Contract”, the supermarket operations textbook in this project (modern-supermarket-operations.md) and the app-functionality file dev/contracts/voice-session-sim-design-extract.md in the SCHEME2 repo, create a contract that identifies what the sim app will implement when it comes to the allocation of merchandise space to products (via SKUs) as SKU placements.
 
 If any input named in this prompt is missing, stop and say which one. Do not substitute another source.
 
