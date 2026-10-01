@@ -1,0 +1,40 @@
+Using Bertrand Meyer’s “Design By Contract”, the  supermarket operations textbook in this project and the file provided discussing app functionality, create a contract that identifies what the sim app will implement when it comes to the allocation of merchandise space to products (via SKUs) as SKU placements.  
+
+For the purpose of creating the contract, do not consider any existing attempts at implementation of this sim, in particular the contents of any GitHub repo previously associated with this project.
+
+Also include another file that is a description where the operations textbook is at odds with the discussion of app functionality and questions that you have to provide a basis of discussions of functionality between you and I in the future.
+
+Usage examples: For every class and every routine (query, command, or creation
+procedure) in the contract, include a non-normative "Examples" block directly after
+its clauses. The contract clauses remain the sole normative specification; examples
+illustrate them and must never add, weaken, or contradict a clause.
+
+- Define one small shared example fixture (e.g., EX-STORE-1) near the start of the
+  contract, with concrete IDs and attribute values, and use it for all examples so
+  they are mutually consistent. Extend the fixture only by adding to it, never by
+  changing existing values.
+- Correct usage (✓): at least one call per routine that satisfies every
+  precondition, showing the relevant state before and after, and naming the
+  postcondition(s) it demonstrates.
+- Client counter-examples (✗): one call per precondition that violates that
+  precondition and no other, showing the PreconditionViolation it raises and the
+  clause ID it breaks.
+- Supplier counter-examples (✗ supplier): for routines with non-trivial
+  postconditions or invariants, show one or more results an incorrect
+  implementation might return, naming the PostconditionViolation or
+  InvariantViolation clause it breaks.
+- Invariant counter-examples: for each class, show at least one object state that
+  would violate each non-obvious invariant, naming the clause.
+- Write every example as Python-style call syntax so it can be turned directly into
+  a pytest case.
+
+In the future, the contract will evolve to specify the requirements of all of the function of the sim.  Some areas functionality that will be specified in the future are:
+* Product restocking
+* Product reordering
+* Product sales to store customers
+* Product purchasing from vendors
+* Product receiving
+
+The contract will be used by you later to provide the sole source of specifications for a set of classes implemented in python to be part of the data model for the sim.
+
+When naming files the resulting files for me to download, keep the name constant for each run; don't attempt to add versioning information to the file name.  I am putting these files in a sub-directory of the SCHEME2 repo for github to maintain versioning.

@@ -7,3 +7,4 @@ venv/
 config.json
 *.vpp.bak_*
 *.vpp.lck
+do_git.zsh
