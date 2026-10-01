@@ -1,18 +1,26 @@
-Using Bertrand Meyer’s “Design By Contract”, the  supermarket operations textbook in this project and the file provided discussing app functionality, create a contract that identifies what the sim app will implement when it comes to the allocation of merchandise space to products (via SKUs) as SKU placements.  
+Using Bertrand Meyer’s “Design By Contract”, the supermarket operations textbook in this project (modern-supermarket-operations.md) and the app-functionality file voice-session-sim-design-extract.md, create a contract that identifies what the sim app will implement when it comes to the allocation of merchandise space to products (via SKUs) as SKU placements.
 
-For the purpose of creating the contract, do not consider any existing attempts at implementation of this sim, in particular the contents of any GitHub repo previously associated with this project.
+If any input named in this prompt is missing, stop and say which one. Do not substitute another source.
 
-Also include another file that is a description where the operations textbook is at odds with the discussion of app functionality and questions that you have to provide a basis of discussions of functionality between you and I in the future.
+For the purpose of creating the contract, do not consider any implementation code, in particular any code in a GitHub repo previously associated with this project. Do use dev/contracts/sim-contract.md and dev/contracts/sim-contract-discussion.md in the SCHEME2 repo as the prior version to revise: keep clause IDs, never reuse a retired ID, and make the change log cover the step from that prior version.
+
+Also include another file that is a description where the operations textbook is at odds with the discussion of app functionality and questions that you have to provide a basis of discussions of functionality between you and I in the future. That file opens with a part "Decisions to check first" (D-n), listing every choice the run made on its own, before its other parts. Mark each conflict and question that did not exist in the prior version "(new)". If the prior discussion file contains a carry-forward part, resolve every item in it: either adopt it as a clause (logged as a D-n item) or drop it (logged with the reason), and omit the carry-forward part from the new discussion file.
+
+Normativity: the contract clauses are the sole normative specification. The contract-by-example usages called for by the app-functionality file are required acceptance tests that the implementation must pass. The per-routine Examples blocks below are illustrative and never add to, weaken, or contradict a clause.
 
 Usage examples: For every class and every routine (query, command, or creation
 procedure) in the contract, include a non-normative "Examples" block directly after
-its clauses. The contract clauses remain the sole normative specification; examples
-illustrate them and must never add, weaken, or contradict a clause.
+its clauses. These blocks are in addition to the separate contract-by-example part
+that the app-functionality file calls for.
 
 - Define one small shared example fixture (e.g., EX-STORE-1) near the start of the
   contract, with concrete IDs and attribute values, and use it for all examples so
   they are mutually consistent. Extend the fixture only by adding to it, never by
   changing existing values.
+- Define the fixture as a sequence of named states (e.g., S0, S1, ...), each
+  reached from the previous one by stated calls, so every example names the state
+  it starts from and the state it produces. Ship the fixture inside the contract as
+  executable pytest fixture code (conftest.py).
 - Correct usage (✓): at least one call per routine that satisfies every
   precondition, showing the relevant state before and after, and naming the
   postcondition(s) it demonstrates.
@@ -27,6 +35,35 @@ illustrate them and must never add, weaken, or contradict a clause.
   would violate each non-obvious invariant, naming the clause.
 - Write every example as Python-style call syntax so it can be turned directly into
   a pytest case.
+
+Testability requirements for the contract:
+
+- Monitoring API. Specify, as clauses: named modules for the model and for the
+  monitoring runtime; violation exceptions that carry clause_id; selectable
+  assertion levels with a context manager that restores the previous level, and a
+  check_invariants(obj) function; that the precondition reported is the first
+  false one in the routine's table order, raised before any state changes; that
+  the lowest level checks nothing and is used only to build counter-example
+  objects; that every ensure and invariant clause has a pure, callable predicate
+  named after its clause ID; and that each predicate reads only the queries its
+  clause names, so a stub object can stand in for a state the constructors cannot
+  build.
+- Creation procedures. Give every class an explicit creation procedure with its
+  own clauses and examples. Build containers bottom-up: a container's constructor
+  takes finished, unattached children and becomes their parent.
+- Frame conditions. Provide the queries needed to state and test "nothing else
+  changes" postconditions, such as a snapshot of the model's mutable state as one
+  comparable value, existence checks used by preconditions, and ID counters.
+- Outcome reasons. Where a result reports a reason (such as why a SKU was not
+  placed), the reasons are mutually exclusive, with a stated precedence order.
+- IDs. Each ID prefix belongs to exactly one class. IDs of created records are
+  sequential and never reused.
+- Deterministic allocation. The allocation function has exactly one correct result
+  for given inputs, specified by a canonical rule, so examples can assert exact
+  placements. Property-style postconditions stay as independently checkable
+  clauses that the canonical result satisfies.
+- Grounding index. Include an appendix indexing every clause by grounding tag
+  ([TB], [VS], [DISC], [SIM]).
 
 In the future, the contract will evolve to specify the requirements of all of the function of the sim.  Some areas functionality that will be specified in the future are:
 * Product restocking
