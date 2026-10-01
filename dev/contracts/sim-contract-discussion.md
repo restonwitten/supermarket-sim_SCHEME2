@@ -1,114 +1,189 @@
-# Contract v0.2 Discussion: Conflicts, Open Questions, and Workbook Flags
+# Contract v0.3 Discussion: Decisions, Conflicts, Open Questions, and Workbook Flags
 
-**Companion to:** `sim-contract.md` v0.2 (Merchandising Space Allocation → SKU Placements)
-**Date:** 2026-09-29
-**Replaces:** the v0.1 companion. Its C-n and Q-n numbers are retired; the numbering below is the only one the v0.2 contract cites.
+**Companion to:** `sim-contract.md` v0.3 (Merchandising Space Allocation → SKU Placements)
+**Date:** 2026-10-01
+**Replaces:** the v0.2 companion. T-, X-, Q-, and E- numbers are kept from v0.2; new items are marked **(new)**. The v0.2 carry-forward part (CF-1 … CF-13) is resolved in Part 0 and no longer exists.
 
-Tags are as in the contract: `[TB x.y]` textbook, `[VS n]` the voice-session extract (the app-functionality file), `[DISC]` the merchandising-space discussion in project memory, `[SIM]` a decision made in the contract.
-
-**How this file is organized**
+Tags are as in the contract: `[TB x.y]` textbook, `[VS n]` the app-functionality file, `[DISC]` the merchandising-space discussion, `[SIM]` a decision made in the contract.
 
 | Part | Content | IDs |
 |---|---|---|
+| 0 | Decisions to check first: every choice this run made on its own | D-1 … D-32 |
 | A | Where the textbook is at odds with the app-functionality file | T-1 … T-11 |
 | B | Where the functionality file is at odds with itself, or with `[DISC]` | X-1 … X-10 |
-| C | Questions for future functionality discussions, each with the contract's current default | Q-1 … Q-26 |
-| D | Check of the extract's four unverified workbook claims | — |
-| E | Cross-workstream flags (workbook Scheme 2 and textbook) | E-1 … E-16 |
+| C | Questions for future functionality discussions, each with the contract's current default | Q-1 … Q-35 |
+| D | Check of the extract's four unverified workbook claims (unchanged from v0.2) | — |
+| E | Cross-workstream flags | E-1 … E-21 |
+
+A note on Parts D and E: Scheme 2's model data are to come from a generator run at app initialization, not from the workbook. The workbook flags stand as written, and each applies equally to the generator: it must produce data that satisfies `Store.build`'s preconditions.
+
+---
+
+## Part 0 — Decisions to check first
+
+Each item says what was decided, why, and what it would cost to reverse. A "yes" to every item needs no reply.
+
+### Carry-forward items (CF-1 … CF-13 of the v0.2 companion)
+
+**D-1. Gondola orientation: long sides face LEFT and RIGHT; end caps are FRONT and BACK. (new)** Adopted from CF-1. `[DISC]` names the four aisles from a viewer at the front of the store facing the rear, and in a grid layout `[TB 1.5]` gondolas run front to back, so the long faces border the left and right aisles and the ends border the front and back aisles. v0.2 had the reverse. Changed: 3.4 prose, GDL-INV-1 … GDL-INV-5, X-5, Q-8, Q-16. The Scheme 2 workbook uses v0.2's reading (E-17). Reversing this means swapping two pairs of names in five clauses.
+
+**D-2. `generate_plan` has exactly one correct answer (GEN-12, `canonical_plan`). (new)** Adopted from CF-2 and required by the revised prompt ("deterministic allocation"). Restated over v0.2's model: pools, planes, extents, `room`, and `consumption`, instead of the retired draft's `assigned_spaces` and bin special case. The procedure tries target facings first, then fewer; within one facing count, leaves in shelf-level order, then leaf id; the first free gap that fits. GEN-1 … GEN-8, GEN-11, and GEN-13 stay as checkable properties; an independent simulation of the fixture reproduced the canonical plan exactly. Cost: a better allocation algorithm (optimization, look-ahead) is now a contract change, not an implementation choice. Supersedes Q-21. See Q-27 for the facings-versus-level order.
+
+**D-3. One allocation order across all pools: descending score, ties by `sku_id`. (new)** The retired draft processed categories in key order, then SKUs by score within each. With v0.2's pools, SKUs of sibling categories can share a pool (Ready-to-Eat and Hot Cereal share Cereal's shelves in the fixture), so a per-category order would let a weak Ready-to-Eat SKU take space before a strong Hot Cereal one. A single score order treats a pool's competitors evenly and is the same for every pool. See Q-33.
+
+**D-4. Scarcity priority (GEN-13). (new)** Adopted from CF-3 under a new ID (v0.2's GEN-11 is home designation). Restated with `room(w, without=t)` and `consumption`. A higher scorer is never left out so that a lower scorer can stay.
+
+**D-5. Unplaced reasons are exclusive, in a stated precedence (ENUM-5, GEN-4). (new)** Adopted from CF-4. Order: `OUT_OF_SEASON`, `NO_CATEGORY_SPACE`, `NO_SPACE_IN_PLANE`, `NO_DIMENSIONAL_FIT`, `INSUFFICIENT_SPACE`. The enum is declared in that order. The draft's `INCOMPATIBLE_ORIENTATION` is not reintroduced; v0.2's `NO_SPACE_IN_PLANE` covers it.
+
+**D-6. Delist review: bottom decile by `floor(n / 10)`, ranked within the SKU's leaf category (PLAN-INV-6). (new)** Adopted from CF-5. `floor` means a category with fewer than 10 in-scope SKUs flags only explicit `DELIST_CANDIDATE`s; rounding up would flag the weakest SKU of every small category, including a category's only SKU. Ranked within the leaf category rather than the pool, because assortment reviews are run per category `[TB 2.6]`. See Q-34.
+
+**D-7. A category's allowed space types must match its temperature zone (CAT-INV-9). (new)** Adopted from CF-6, restated over the type tree. So a refrigerated category can't list `DOOR_CASE` (which includes the frozen reach-in) and must list `REACH_IN_COOLER`. Consequence: ASN-PRE-4 is now implied by ASN-PRE-3 and has no independent counter-example.
+
+**D-8. Floor displays are never category space (CAT-INV-10). (new)** Adopted from CF-7. Closes v0.2's gap where `assign_space` could give a promotional-only display to a category. A category may not allow `MERCHANDISING` as a whole either, since that includes floor displays.
+
+**D-9. Physical order and positive dimensions of fixture parts. (new)** Adopted from CF-8: ENUM-6 (`physical_order`), BAY-INV-3, BAY-INV-4, DOR-INV-4 (new, same rule for doors), RUN-INV-2, SVC-INV-2, TIER-INV-2.
+
+**D-10. `add_months` is defined (ADDM-PRE-1, ADDM-1). (new)** Adopted from CF-9. A month-end date stays at month end (31 Aug + 6 → 28 Feb).
+
+**D-11. CF-10 (leaf order when a category mixes units) dropped. (new)** The case cannot arise: a pool is single-plane, every `FRONT` leaf has a shelf level (LS-INV-11, D-17), and no `TOP` or `PEG` leaf has one. POL-4's `level_preference(None) == 0` stays.
+
+**D-12. CF-11 (season as a set of months) dropped as a representation; the question carried as Q-28. (new)** v0.2's `(first, last)` tuple, which may wrap the year, is kept; SKU-INV-11 (new) bounds its months. A set of months is more general, but nothing in the sources asks for a non-contiguous season.
+
+**D-13. CF-12 (facings across bay boundaries) dropped as a clause; carried as Q-29. (new)** Already structural: a placement has one `space` leaf, and PLC-INV-5 keeps it inside the leaf.
+
+**D-14. CF-13 (grain of `secured`) dropped as a clause; carried as Q-30. (new)** Already per leaf in v0.2. D-27 extends it to every leaf class.
+
+### Defects found in v0.2
+
+**D-15. SN-INV-1 corrected. (new)** v0.2 said non-merchandising space holds no allocatable leaf. Since `SALES_FLOOR`'s and the store's `merchandisable` is `False`, the clause was false for the store, the sales floor, and every checkout area holding an impulse rack. It now applies to `NON_MERCHANDISING` types other than `CHECKOUT`.
+
+**D-16. GEN-6 corrected. (new)** v0.2 required no free block adjacent to an under-target placement. With whole facings, a gap smaller than one facing can always remain, so no plan could meet it. It now requires no adjacent gap of at least one facing.
+
+**D-17. LS-INV-11: every front-facing leaf has a shelf level. (new)** v0.2 only said a non-front leaf has none. Needed for D-11 and for a total level order in pools.
+
+**D-23. `target_facings` takes `as_of`. (new)** v0.2's POL-2 used `as_of` without receiving it. The signature is now `target_facings(sku, in_scope, as_of)`, with POL-PRE-1 requiring an in-season SKU of the scope; `+ EPS` added inside `floor` against float error.
+
+**D-31. REL-PRE-3 also requires the new version's effective date to follow every overlapping version's. (new)** v0.2's precondition allowed a release that PGV-INV-4 then forbade.
+
+### Testability requirements of the revised prompt
+
+**D-18. One id prefix per class; created records numbered `PREFIX-nnnnnn`. (new)** v0.2 gave some classes several prefixes and some prefixes patterns (`…-DOR-`). New prefixes: `SHR-`, `DCR-`, `DOR-`, `SVC-`, `TIER-`, `TBL-`, `BIN-` (ID-1). Agreement, placement, and incidental ids are six-digit and sequential, never reused, continuing after the largest seed id (ID-2, BUILD-3, CAN-1). Workbook ids differ (E-18).
+
+**D-19. Creation procedures are bottom-up; records are created detached. (new)** Every class has a constructor with its own preconditions, grouped so each has one counter-example. Containers take finished, unattached children, so no hierarchy can contain a cycle (HN-INV-3 holds by construction; N-1 now tests re-attachment). `ShelfRun`, `Bay`, `Door`, and `Tier` take `space_type` as an argument, because they serve several fixture types and a detached part has no parent to inherit from. Agreements, placements, and incidentals are detached until `Store.build` or a store command attaches them; invariants that need the store are marked (A).
+
+**D-20. Monitoring API design (MON-1 … MON-10). (new)** Modules `supermarket_sim.model`, `supermarket_sim.contracts`, and `supermarket_sim.predicates`. Levels `NONE < REQUIRE < ENSURE < INVARIANT < ALL`, with `ALL` adding a deep check of every contained object after each store command. Postcondition predicates have the signature `P(self, result, old, **args)`; for a creation procedure `self` is the new object; for a module function `self` is `None`. A failed postcondition restores `old` before raising.
+
+**D-21. Frame conditions use one snapshot and `changed(old, new)` (FRM-1 … FRM-3). (new)** The snapshot holds only mutable state; hierarchy structure, products, SKUs, and the calendar are static (Q-14) and left out. Every command's "nothing else changes" is now a `changed(…) <= K` clause.
+
+**D-22. CAT-INV-8 retired; replaced by CAT-REV-1 (a review clause). (new)** It had no checkable expression, and MON-8 requires a predicate for every invariant.
+
+**D-24. New placements of an executed version get consecutive ids in entry order (EXE-6). (new)** Needed so examples can name `PLC-000003` exactly.
+
+**D-25. `HierarchyNode.root()` (HN-Q-6) replaces the undefined `path_root()`. (new)**
+
+**D-26. The fixture EX-STORE-1 replaces v0.2's fixture `F`. (new)** Chosen so every class and every unplaced reason appears: a gondola with a long side, an end cap, a peg section, and a clip strip; a wall shelf; a reach-in cooler; a deli case; a produce table; two floor displays (one an impulse rack under `CHECKOUT`); a secured category (Health & Beauty) for ASN-PRE-5; and seven states, S0 … S6, covering two resets, a slotting renewal that lapses, a promotion, and overstock. All values are fictional.
+
+**D-27. Every leaf class carries `secured` (default `False`). (new)** v0.2 listed it only for shelf runs, tiers, and floor displays while `LeafSpace.secured` applied to all leaves.
+
+**D-28. `block_breaks` and `adjacency_breaks` are sorted. (new)** Needed for GEN-12's single result.
+
+**D-29. BLK-4 kept as written although the fixture shows it flags a private label placed next to its benchmark in the same door. (new)** See Q-31.
+
+**D-30. PLC-INV-12 also requires the agreement's vendor to be the SKU's manufacturer. (new)** AGR-INV-7 already required it from the agreement's side; stating it on the placement lets a detached placement be checked.
+
+**D-32. Normativity is stated in 0.1. (new)** Clauses are the sole normative specification; Part 9 usages are required acceptance tests; Examples blocks are illustrative. Where Part 9 and a clause disagree, the clause governs and the disagreement is a defect to raise.
 
 ---
 
 ## Part A — Textbook vs. app functionality
 
-Each item says what the textbook says, what the functionality file says, and how the contract resolved it. Where the resolution needs your confirmation, a question number points to Part C.
+Each item says what the textbook says, what the functionality file says, and how the contract resolves it.
 
 ### T-1. Slotting fees: upfront payment or ongoing rent
 
 - **Textbook:** slotting fees are "upfront payments for placement" `[TB 2.4]`.
 - **Functionality:** ongoing shelf space is effectively rented, priced by facings or linear feet, and renewed at reset `[VS 3]`.
-- **Contract:** the ongoing-rent reading. `Agreement.fee_rate` is for a term, `term_fee(p)` scales with the placement's facings or linear feet (AGR-Q-1), and slotting windows start on reset dates (AGR-INV-2). An upfront one-time payment is `FeeBasis.FLAT`. → **Q-20**
+- **Contract:** the ongoing-rent reading. `fee_rate` is for a term; `term_fee` scales with facings or linear feet (AGR-Q-1); slotting starts on reset dates (AGR-INV-2, AGC-PRE-2). An upfront payment is `FeeBasis.FLAT`. → **Q-20**
 
 ### T-2. Is a category a business unit
 
 - **Textbook:** each category is "a discrete business unit" with its own sales, margin, and space targets `[TB 2.1]`.
-- **Functionality:** category and business unit are separate recursive hierarchies (division, banner, region, store, department on one side; department, category, subcategory, segment on the other) `[VS 6]`.
-- **Contract:** two hierarchies. A `DEPARTMENT` business unit points at one root category (BU-INV-1, BU-INV-2). Category-level targets stay on `CategoryPolicy`. `[VS 6]` says this divergence belongs in the workbook's Methodology sheet (E-14).
+- **Functionality:** category and business unit are separate recursive hierarchies `[VS 6]`.
+- **Contract:** two hierarchies. A `DEPARTMENT` business unit points at one root category (BU-INV-1, BU-INV-2). Category targets stay on `CategoryPolicy`. Methodology note: E-14.
 
 ### T-3. Flat department/category vs. arbitrary depth
 
-- **Textbook:** department and category are two flat levels, and the department mix is expressed in shares of selling space `[TB 1.2, 2.1]`.
+- **Textbook:** department and category are two flat levels `[TB 1.2, 2.1]`.
 - **Functionality:** arbitrary depth for space, business unit, and category `[VS 6]`.
-- **Contract:** arbitrary depth (HN-*). Policy is inherited from the nearest ancestor that defines it (CAT-Q-1). The textbook's department square-foot targets are not generated (T-9).
+- **Contract:** arbitrary depth (HN-*). Policy is inherited from the nearest ancestor that defines it (CAT-Q-1).
 
 ### T-4. Position "down to the inch" vs. placements with no position
 
-- **Textbook:** a planogram fixes which SKU goes on which shelf, at what facing count, and in what position, down to the inch `[TB 2.2]`.
-- **Functionality:** an incidental placement has no fixed position, and giving it one would model a precision that does not exist `[VS 3]`. Horizontal position carries almost no value `[VS 12]`.
-- **Contract:** permanent and promotional placements carry `space`, `extent`, and `offset_in` (PLC-INV-5). Incidental placements carry none of them (INC-INV-4). Horizontal position is stored and checked for overlap (LS-INV-6) but never scored (POL-4).
+- **Textbook:** a planogram fixes shelf, facing count, and position, down to the inch `[TB 2.2]`.
+- **Functionality:** an incidental placement has no fixed position `[VS 3]`; horizontal position carries almost no value `[VS 12]`.
+- **Contract:** committed placements carry space, extent, and offset (PLC-INV-5); incidental placements carry none (INC-INV-4). Horizontal position is stored and checked for overlap (LS-INV-6) but never drives allocation (POL-4); the canonical procedure uses it only to pick the first free gap (GEN-12).
 
-### T-5. Facing count: the planned quantity, or a derived one
+### T-5. Facing count: planned quantity or derived
 
-- **Textbook:** the planogram specifies "facing count" as a planned quantity `[TB 2.2]`, and space is optimized in facings `[TB 2.3]`.
-- **Functionality:** store the allocated extent and the presentation plane, and derive facings `[VS 8]`.
-- **Contract:** extent is stored, facings are derived (PLC-Q-1). The planner's target is still a facing count (POL-2, GEN-5), which is converted to extent for the placement.
+- **Textbook:** the planogram specifies facing count `[TB 2.2]`; space is optimized in facings `[TB 2.3]`.
+- **Functionality:** store allocated extent and presentation plane; derive facings `[VS 8]`.
+- **Contract:** extent stored, facings derived (PLC-Q-1). The policy's target is still a facing count (POL-2), converted to extent by `consumption` (FIT-2).
 
 ### T-6. One planogram vs. versioned, frozen, and revised planograms
 
-- **Textbook:** planograms enforce consistency across stores of a format, with local mods `[TB 2.2]`. Resets are full or partial `[TB 1.6]`. Assortment reviews happen at reset windows `[TB 2.6]`.
-- **Functionality:** the planogram is versioned. A revision creates a new authoritative version mid-cycle. The version the crew executes is a frozen snapshot, and the one the category manager edits is a different object. A reset runs over a night or several, sometimes staggered across stores for weeks `[VS 4, 10]`.
-- **Contract:** `Planogram.working` versus `PlanogramVersion` (6.5), `CYCLE` and `REVISION` versions, one pending version per scope (PGV-INV-4). Execution is instantaneous on the effective date in this version, which the functionality file says is not real. → **Q-19**
+- **Textbook:** consistency across stores with local mods `[TB 2.2]`; full or partial resets `[TB 1.6]`; reviews at reset windows `[TB 2.6]`.
+- **Functionality:** versions, frozen reset packs, revisions queued during a reset, resets that run over nights or weeks `[VS 4, 10]`.
+- **Contract:** working plan vs. `PlanogramVersion` (6.5); one pending version per scope (PGV-INV-4, REL-PRE-3). Execution is instantaneous in this version. → **Q-19**
 
 ### T-7. Shelf tags: electronic or paper
 
-- **Textbook:** chapter 8.4 describes electronic shelf labels as the price-tag technology `[TB 8.4]`.
-- **Functionality:** paper tags, batch-printed and hung as part of the reset, are a deliberate sim assumption. Electronic labels would weaken the reason the batching exists `[VS 11]`.
-- **Contract:** shelf tags are not modeled at all. The batching consequence is kept: change happens at resets and at released revisions (PLC-INV-14). The Methodology sheet should state the paper-tag assumption (E-14).
+- **Textbook:** electronic shelf labels `[TB 8.4]`.
+- **Functionality:** paper tags batch-printed at reset, as a deliberate sim assumption `[VS 11]`.
+- **Contract:** tags are not modeled. The batching consequence is kept: permanent placements start only at resets or released revisions (PLC-INV-14). Methodology note: E-14.
 
 ### T-8. Category captain and private label
 
-- **Textbook:** a captain helps design the planogram in exchange for shopper insight and "a favored position" `[TB 2.4]`. Private-label space has a target share `[TB 2.5]`.
-- **Functionality:** private label sits immediately right of the brand it is benchmarked against. The captain is asked to place a direct competitor, so private-label placement is a retailer decision the captain works around `[VS 12]`.
-- **Contract:** the captain has no effect on allocation (POL-5). Private label adjacency is reported (BLK-4), and the private-label target is reported, not asserted (CAT-Q-4). → **Q-7, Q-14, Q-22**
+- **Textbook:** a captain helps design the planogram in exchange for "a favored position" `[TB 2.4]`; private label has a space target `[TB 2.5]`.
+- **Functionality:** private label sits immediately right of its benchmark; the retailer, not the captain, decides its placement `[VS 12]`.
+- **Contract:** the captain has no effect (POL-5). Private-label adjacency is reported (BLK-4) and the target is reported, not asserted (CAT-Q-4). → **Q-7, Q-14, Q-22, Q-31**
 
 ### T-9. Department space targets and space shares
 
-- **Textbook:** square footage is split across departments by sales productivity and role. Perishables use 30–40% of *selling space* `[TB 1.2]`.
-- **Functionality:** selling space is 60–70% of the *floor*. The hierarchy covers the whole footprint so that the total reconciles `[VS 6]`.
-- **Contract:** two different denominators, not a contradiction, and the contract keeps them apart. `selling_share()` reports selling space over building footprint (ST-Q-6). Space is assigned to categories as input data (ASN-*), and no department-level target is generated. → **Q-2**
+- **Textbook:** perishables use 30–40 % of *selling space* `[TB 1.2]`.
+- **Functionality:** selling space is 60–70 % of the *floor* `[VS 6]`.
+- **Contract:** two denominators, not a contradiction. `selling_share()` reports selling space over the building (ST-Q-6). Space is assigned to categories as input (ASN-*); no department target is generated. → **Q-2**
 
 ### T-10. Fixtures
 
-- **Textbook:** no fixtures section. It mentions locked cases `[TB 6.4]`, temperature-controlled display `[TB 4.4]`, and secondary/promotional visibility `[TB 7.3, 7.5]`.
-- **Functionality:** gondola faces, end caps, peg sections, clip strips, floor displays, and a checkout impulse rack as floor display or its own node `[VS 6, 7]`.
-- **Contract:** the fixture structure is `[DISC]` and `[VS 7]` and is not in the textbook (E-15). Checkout impulse racks are `FLOOR_DISPLAY` under a `CHECKOUT` area (TYP-3). → **Q-16**
+- **Textbook:** no fixtures section; mentions locked cases `[TB 6.4]`, refrigerated display `[TB 4.4]`, and promotional visibility `[TB 7.3, 7.5]`.
+- **Functionality:** gondola faces, end caps, peg sections, clip strips, floor displays, checkout racks `[VS 6, 7]`.
+- **Contract:** the fixture structure comes from `[DISC]` and `[VS 7]` (E-15). End caps are the `FRONT` and `BACK` sides of a gondola (D-1). Checkout impulse racks are `FLOOR_DISPLAY`s under a `CHECKOUT` area (TYP-3). → **Q-16**
 
 ### T-11. Items carried over from v0.1, resolved
 
 | Topic | Textbook | Functionality | Contract |
 |---|---|---|---|
-| Delisting | slow movers face review `[TB 2.3, 2.6]` | silent | plan reports `delist_review` but never delists (PLAN-INV-6). → **Q-18** |
-| Cold chain | unbroken to the shelf `[TB 4.4]`; perishables on the perimeter `[TB 1.3]` | space types imply temperature | derived from type (TYP-2), enforced (LS-INV-7, PLC-INV-6) |
-| One store or chain | localized planograms and price zones `[TB 2.2, 7.2]` | one store | one store (BU-INV-3). → **Q-23** |
-| Unit of space | department in sq ft `[TB 1.2]`, category in linear feet `[TB 2.3]` | linear vs. area by plane `[VS 8]` | per-unit measures, never mixed (RU-4) |
+| Delisting | slow movers face review `[TB 2.3, 2.6]` | silent | the plan reports `delist_review` (PLAN-INV-6, D-6) but never delists. → **Q-18** |
+| Cold chain | unbroken to the shelf `[TB 4.4]` | space types imply temperature | derived from type (TYP-2), enforced (LS-INV-7, PLC-INV-6, CAT-INV-9) |
+| One store or chain | localized planograms `[TB 2.2, 7.2]` | one store | one store (BU-INV-3). → **Q-23** |
+| Unit of space | sq ft for departments, linear feet for categories | linear vs. area by plane `[VS 8]` | per-unit measures, never mixed (RU-4) |
 
 ---
 
 ## Part B — Conflicts inside the functionality file (and against `[DISC]`)
 
-The functionality file is a set of voice responses, so it changes its mind as it goes. Each item shows the two statements and the choice the contract made.
-
 | ID | Statement 1 | Statement 2 | Contract choice |
 |---|---|---|---|
-| X-1 | "Let the presentation plane on the **placement** pick which pair of dimensions matters" `[VS 8]` | "Presentation plane is a property of the **space** node, not the product" `[VS 8]` | Space. The placement inherits the plane from its leaf. A mixed case (a horizontal deck plus a vertical riser) is two leaves and two placements |
-| X-2 | The sim needs a way to know which placement is primary. "Does your placement table carry a flag?" `[VS 2]` | Primary "isn't a flag you set, it falls out of" the planogram's home position `[VS 2]` | No flag. Derived by HOME-1 |
-| X-3 | "Three parallel recursive hierarchies: space, business unit, and product category" `[VS 6]` | Space type is "its own hierarchy rather than a flat tag" `[VS 6]`; the DbC section then lists four | Four hierarchies, all conforming to one `HierarchyNode` |
-| X-4 | "Gondola, then face, then shelf, then the linear segment within a shelf" `[VS 7]` | "Bay by shelf number identifies the leaf, the leaf carries a linear width" `[VS 8]`; `[DISC]` has Gondola → Side → Bay → ShelfRun | `[DISC]` structure. A segment is an offset within a leaf, not a node |
-| X-5 | End caps are "faces of the same gondola" `[VS 7]` | Merchandising space subdivides into "gondola, endcap, cooler, floor display" as sibling types `[VS 6]` | End caps are `LEFT` and `RIGHT` `GondolaSide`s. There is no `ENDCAP` space type. A free-standing end display is a `FloorDisplay`. → **Q-8**, **Q-16** |
-| X-6 | A clip strip "consumes a bit of that face's frontage" `[VS 7]` | It is "allocated and priced quite separately from the shelves behind it" `[VS 7]` | Frontage is recorded on the strip and not deducted from any shelf (CLP-INV-2). → **Q-15** |
-| X-7 | Pegboard placements "might have a shorter effective life" because re-spacing takes seconds `[VS 7]` | Permanent placements start at the reset date `[VS 4]` | Reconciled by making a peg re-spacing a released `REVISION` version, which PLC-INV-14 allows. `respace_without_reset` marks the leaf types where this is expected. Whether a peg change should be free of the version process is open. → **Q-19** |
-| X-8 | Reset means "the duration": six to twelve months `[VS 4]` | "Three to twelve months depending on category velocity" `[VS 4]`; and "leave the end open or set to the next reset" `[VS 4]` | `reset_cycle_months >= 1` (CAT-INV-5) with 3–12 as the documented range. An end date is set at execution of the next version (EXE-1), not predicted at creation |
-| X-9 | Revenue "has to attach at the leaf, at the placement, so it rolls up cleanly" `[VS 9]` | A SKU may have several live placements. Sales are rung up per SKU, not per shelf position `[VS 2]` | Reserved measure (2.3). How SKU revenue is split across a SKU's placements is unspecified. → **Q-9** |
-| X-10 | Slotting: "ongoing shelf space is rented, renewed at reset" `[VS 3]` | Pay-to-stay: "fees for holding existing space" `[VS 3]` | Both map to `PERMANENT` placements and differ only by `AgreementType`. The functionality file does not say how they differ in behavior. → **Q-20** |
+| X-1 | the presentation plane on the **placement** picks the dimensions `[VS 8]` | the plane is a property of the **space** node `[VS 8]` | Space. A mixed deck-and-riser case is two leaves and two placements |
+| X-2 | the sim needs a primary flag `[VS 2]` | primary falls out of the planogram's home position `[VS 2]` | No flag. HOME-1 |
+| X-3 | three parallel hierarchies `[VS 6]` | space type is its own hierarchy `[VS 6]` | Four hierarchies, one `HierarchyNode` |
+| X-4 | gondola → face → shelf → segment `[VS 7]` | bay × shelf identifies the leaf `[VS 8]`; `[DISC]` has Gondola → Side → Bay → Shelf Run | `[DISC]`. A segment is an offset, not a node |
+| X-5 | end caps are faces of the same gondola `[VS 7]` | gondola, endcap, cooler, floor display as sibling types `[VS 6]` | End caps are the `FRONT`/`BACK` sides of a gondola (D-1; v0.2 had `LEFT`/`RIGHT`). No `ENDCAP` type; a free-standing end display is a `FloorDisplay`. → **Q-8, Q-16, Q-32** |
+| X-6 | a clip strip consumes a bit of the face's frontage `[VS 7]` | it is allocated and priced separately `[VS 7]` | Frontage recorded, not deducted (CLP-INV-2). → **Q-15, Q-35** |
+| X-7 | peg placements may have a shorter life `[VS 7]` | permanent placements start at reset dates `[VS 4]` | A peg re-spacing is a released `REVISION` (PLC-INV-14); `respace_without_reset` marks where that is expected. → **Q-19** |
+| X-8 | a reset is six to twelve months `[VS 4]` | three to twelve, by velocity; end open or set to the next reset `[VS 4]` | `reset_cycle_months >= 1` (CAT-INV-5); end dates set at the next execution (EXE-1) |
+| X-9 | revenue attaches at the placement `[VS 9]` | a SKU may have several live placements, and sales are per SKU `[VS 2]` | Reserved (2.3). → **Q-9** |
+| X-10 | slotting is rented space renewed at reset `[VS 3]` | pay-to-stay is a fee for holding space `[VS 3]` | Both are `PERMANENT` placements, differing by `AgreementType`. → **Q-20** |
 
 ---
 
@@ -116,392 +191,129 @@ The functionality file is a set of voice responses, so it changes its mind as it
 
 Each question gives the contract's current default in **bold**. A "yes" to every default needs no reply.
 
-**Q-1. Authority of workbook versus contract.** **Default: the contract governs, and the workbook is changed to conform (Part E), not the reverse.** The workbook currently disagrees with the contract in several places (Part D, E).
+**Q-1. Authority of workbook versus contract.** **Default: the contract governs; the workbook (and the Scheme 2 generator) conform to it.**
 
-**Q-2. Who assigns space to categories, and at what grain.** **Default: input data, assigned at any merchandisable node and inherited downward (`assign_space`). A SKU draws on the nearest ancestor category that owns space in its plane (pool, 6.1).** Alternatives: assign at leaves only, or generate assignments from role and productivity `[TB 2.1, 2.3]`.
+**Q-2. Who assigns space to categories, and at what grain.** **Default: input data, at any merchandisable node, inherited downward; a SKU draws on the nearest ancestor category that owns space in its plane (POOL-2).**
 
-**Q-3. SKU categories at leaves only.** **Default: yes (SKU-INV-9).** A SKU is always in a leaf category node. The alternative allows a SKU on an interior node such as "Cereal" with no subcategory.
+**Q-3. SKU categories at leaves only.** **Default: yes (SKU-INV-9).**
 
-**Q-4. Target-facings formula.** **Default: space share proportional to `score ** (1 / (1 - e))` among competitors in the pool, then clamped to the category's min and max facings (POL-2).** Confirm, or name the rule you want, for example proportional to velocity only.
+**Q-4. Target-facings formula.** **Default: share proportional to `score ** (1 / (1 - e))` among the pool's in-season competitors, clamped to the category's facing bounds (POL-2).**
 
-**Q-5. What performance means.** **Default: weekly gross-margin dollars (POL-1).** The textbook also names GMROI `[TB 2.3]`, which needs an inventory-investment figure per SKU. Switch to GMROI once inventory exists (Restocking)?
+**Q-5. What performance means.** **Default: weekly gross-margin dollars (POL-1).** Switch to GMROI `[TB 2.3]` once inventory exists?
 
-**Q-6. Permitted planes and forms.** **Default: `BOX` on FRONT or TOP; `SOFT_PACK` on FRONT (TOP if it has a per-square-foot override); `HANGING` on PEG only; `LOOSE` on TOP only (PROD-Q-1, ENUM-4).** Also: should bulky or heavy items be forced to the bottom shelf, and kids' items to lower levels? The textbook is silent.
+**Q-6. Permitted planes and forms.** **Default: `BOX` on FRONT or TOP; `SOFT_PACK` on FRONT (TOP with a per-square-foot override); `HANGING` on PEG; `LOOSE` on TOP.** Should bulky items be forced to the bottom shelf?
 
-**Q-7. Category captain.** **Default: no effect (POL-5).** Should a captain's brands get a score weight, first choice of levels, or authorship of a plan the retailer then checks for bias `[TB 2.4]`?
+**Q-7. Category captain.** **Default: no effect (POL-5).**
 
-**Q-8. Both faces of a gondola have the same length (GDL-INV-3).** **Default: yes, the same bay count and widths.** Physical common sense, not from the functionality file. Can end faces (`LEFT`, `RIGHT`) also be missing on a gondola?
+**Q-8. Both long sides of a gondola have the same length (GDL-INV-3).** **Default: yes; the `LEFT` and `RIGHT` sides have the same bays.** Restated for D-1 (v0.2 said `FRONT` and `BACK`). Can a gondola lack one or both end caps? (The fixture's has only a `FRONT` one.)
 
-**Q-9. Revenue across multiple placements.** **Default: reserved (Part 10). When Sales arrives, a SKU's revenue is attributed to its `home_placement`.** Alternatives: split across live placements by facings or extent, or record sales per placement at the point of sale. Determines the definition of sales per linear foot.
+**Q-9. Revenue across multiple placements.** **Default: reserved; when Sales arrives, a SKU's revenue goes to its `home_placement`.**
 
-**Q-10. Floor displays hold promotional placements only (FD-INV-2).** **Default: yes.** The workbook's floor display placements are all vendor-funded (Part D). Should a floor display ever host a permanent placement, for example a permanent bulk-display fixture?
+**Q-10. Floor displays hold promotional placements only (FD-INV-2).** **Default: yes.** CAT-INV-10 (D-8) now also keeps them out of category space.
 
-**Q-11. Produce table temperature.** **Default: ambient (TYP-2).** Many produce tables are misted or refrigerated. Should temperature be an attribute per table rather than per type?
+**Q-11. Produce table temperature.** **Default: ambient (TYP-2).**
 
-**Q-12. One SKU per bin at a time (BIN-INV-2).** **Default: yes, and a bin is allocated whole.** Alternatives: a SKU spans several bins (allowed today as several placements), or bins are shared by footprint.
+**Q-12. One SKU per bin at a time (BIN-INV-2).** **Default: yes; a bin is allocated whole.**
 
-**Q-13. Hanging products currently placed on shelves.** **Default: not allowed (FIT-1). A `HANGING` product can only be placed on a `PEG` leaf.** The workbook has 414 hanging SKUs placed on gondola shelving and 11 on floor displays (Part D). Do we create peg sections to house them, or treat hanging as a shelf-orientation variant?
+**Q-13. Hanging products currently on shelves.** **Default: a `HANGING` product goes only on `PEG` leaves.** The workbook has 425 hanging SKUs on shelving and displays (Part D).
 
-**Q-14. Static hierarchies, and objectives versus constraints.** **Default: no command adds, moves, or removes a node in any of the four hierarchies. The private-label space target and department mix are reported objectives, not postconditions.** Should the private-label target be a hard postcondition when feasible?
+**Q-14. Static hierarchies; objectives versus constraints.** **Default: no command changes any hierarchy; the private-label target and department mix are reported, not asserted.**
 
-**Q-15. Clip strip frontage.** **Default: recorded, not deducted from any shelf run's capacity (CLP-INV-2).** Deduct it from the run that the strip physically covers?
+**Q-15. Clip strip frontage.** **Default: recorded, not deducted (CLP-INV-2).**
 
-**Q-16. End caps and checkout racks.** **Default: end caps are `LEFT`/`RIGHT` gondola sides. A checkout impulse rack is a `FLOOR_DISPLAY` under a `CHECKOUT` area (TYP-3).** Are there end caps not attached to a gondola?
+**Q-16. End caps and checkout racks.** **Default: end caps are the `FRONT`/`BACK` sides of a gondola (D-1); a checkout impulse rack is a `FLOOR_DISPLAY` under a `CHECKOUT` area.** Are there end caps not attached to a gondola?
 
-**Q-17. Footprint tolerance.** **Default: a parent's footprint must equal its children's sum within 1.0 sq ft (AREA-INV-2).** Real floor plans have unmeasured slivers. Larger tolerance, or an explicit "unaccounted" child?
+**Q-17. Footprint tolerance.** **Default: 1.0 sq ft (AREA-INV-2).**
 
-**Q-18. Assortment status.** **Default: `DELISTED` SKUs are excluded from planning. `DELIST_CANDIDATE` and `NEW_ITEM_TRIAL` are allocated like `CORE` by score.** Should trials get guaranteed minimum or eye-level exposure? Should delist candidates be held to minimum facings?
+**Q-18. Assortment status.** **Default: `DELISTED` SKUs are out of scope; trials and candidates are allocated by score like `CORE`.**
 
-**Q-19. Reset execution.** **Default: a version takes effect fully on its effective date (EXE-1). A peg or clip strip change is a `REVISION` version like any other.** The functionality file says real resets take a night or several, staggered across stores `[VS 10]`. When should the model represent a reset in progress (part-executed), and should a peg change bypass versioning?
+**Q-19. Reset execution.** **Default: instantaneous on the effective date (EXE-1); a peg change is a `REVISION` like any other.**
 
-**Q-20. Agreement semantics.** **Default: `fee_rate` applies to the whole term. Slotting and pay-to-stay differ only by type and compatible basis (AGR-INV-2 to 5). No fee is charged by the model; `term_fee` is a query.** How do pay-to-stay and slotting differ in the sim? Is a fee ever charged per period, and where does trade funding `[TB 2.4]` (a rebate to the retailer) go in the model?
+**Q-20. Agreement semantics.** **Default: `fee_rate` covers the term; slotting and pay-to-stay differ only by type; `term_fee` is a query.** Where does trade funding `[TB 2.4]` go?
 
-**Q-21. Contract strength versus algorithm freedom.** **Default: GEN-5 to GEN-8 constrain the result, and plan quality beyond them is up to the implementation.** Or should the search itself be specified, for example greedy fill by score within preferred levels?
+**Q-21. Contract strength versus algorithm freedom.** Superseded by D-2. Confirm D-2 or revert to property-only postconditions.
 
-**Q-22. Blocking objectives.** **Default: brand-block and private-label adjacency breaks are reported, never required to be empty (BLK-3, BLK-4). The default mode is vertical brand blocking; horizontal tier blocking is chosen per category.** Make breaks a plan objective, and who owns the choice of mode?
+**Q-22. Blocking objectives.** **Default: breaks are reported, never required to be empty; vertical brand blocking by default.**
 
-**Q-23. One store or a chain.** **Default: one store (BU-INV-3).** Will the sim need multiple stores or formats, with localized planograms `[TB 2.2]`?
+**Q-23. One store or a chain.** **Default: one store (BU-INV-3).**
 
-**Q-24. DSD vendor-managed space.** **Default: ignored.** DSD vendors (bread, snacks, soda) often stock their own shelves `[TB 4.1]`. Flag vendor-maintained space when Restocking and Receiving are specified?
+**Q-24. DSD vendor-managed space.** **Default: ignored until Restocking and Receiving.**
 
-**Q-25. Incidental placements.** **Default: `units_held` is a plain count, and `zone_hint` is best effort. No shelf capacity is consumed and no cold-chain rule applies yet (5.3).** Should incidental stock count against a backroom or floor limit, and must a refrigerated SKU's incidental stock stay in a cold zone?
+**Q-25. Incidental placements.** **Default: `units_held` is a plain count; `zone_hint` is best effort; no capacity or cold-chain rule yet.**
 
-**Q-26. Promotional placement without a permanent home.** **Default: allowed (PRM-PRE-1 to 6). A SKU needs no permanent placement first.** The functionality file treats promotional deals as separate from the baseline space agreement `[VS 3]`. Should the sim insist on a permanent home first, so that promotional displays only ever add to a base?
+**Q-26. Promotional placement without a permanent home.** **Default: allowed.**
+
+**Q-27. Facings versus level priority. (new)** **Default: the canonical procedure keeps the most facings that fit before it seeks a better level (D-2).** In the fixture, SKU-A gets 6 facings on the eye-level shelf; had no 48 in eye-level gap existed, it would take 6 facings on the bottom shelf rather than fewer at eye level. `[TB 2.3]` rewards both without ranking them. Reverse the order?
+
+**Q-28. Season granularity. (new)** **Default: a month range that may wrap the year (D-12).** Do you need weeks or dates (holidays), or a category-level season for `OCCASIONAL_SEASONAL` categories?
+
+**Q-29. Facings across bay boundaries. (new)** **Default: no; a placement sits within one leaf (D-13).** In the fixture, SKU-A's target of 7 facings (56 in) can't be met on 48 in shelves for this reason. Allow a SKU to span an upright?
+
+**Q-30. Grain of `secured`. (new)** **Default: per leaf (D-14, D-27).** Is secured space a whole fixture, a door, or a single shelf?
+
+**Q-31. Private-label adjacency at bay granularity. (new)** **Default: BLK-4 as in v0.2, by bay or door position.** The fixture shows the consequence: the private-label yogurt sits on the shelf below the benchmark in the same door, and BLK-4 reports `DCR-1` as a break, because "immediately right" is measured in whole doors or bays. Should adjacency use the offset within a shelf, the shelf level, or both?
+
+**Q-32. Gondolas that run side to side. (new)** **Default: not modeled; every gondola runs front to back (D-1).** Should a gondola along the front racetrack, whose long faces face front and back, be allowed?
+
+**Q-33. Allocation order across categories that share a pool. (new)** **Default: one score order for all SKUs (D-3).** A pool shared by Ready-to-Eat and Hot Cereal goes to the higher scorers regardless of subcategory. Should each child category get a guaranteed minimum before score order applies?
+
+**Q-34. Delist-review ranking basis. (new)** **Default: within the SKU's leaf category (D-6).** Rank within the pool (the space competitors) instead?
+
+**Q-35. Where peg sections and clip strips sit on a face. (new)** **Default: they are children of the side and take no bay space.** In the fixture, `SID-1L`'s two bays fill its 96 in length and the peg section still exists beside them. Should a peg section replace a bay (take a bay position) or hang within one?
 
 ---
 
 ## Part D — The extract's four unverified workbook claims, checked
 
-The extract states it made four claims from memory, without opening the workbook. Checked against `supermarket_operations_data_SCHEME2.xlsx`, the active scheme.
+Unchanged from v0.2 (checked against `supermarket_operations_data_SCHEME2.xlsx`).
 
 | # | Extract's claim | Result |
 |---|---|---|
-| 1 | Product and SKU are one-to-one `[VS 1]` | **Confirmed.** Product Master is keyed by UPC and carries one `SKU (ref)` per row; SKU Master pulls product attributes by lookup on UPC; both have 5,990 rows |
-| 2 | Category fields are flat columns, not true hierarchies `[VS 9]` | **Confirmed.** Category Space Allocation is one row per (Department, Category) with a single `Fixture Type` per category. There is no subcategory, segment, or parent-child structure |
-| 3 | Business unit is "not really there at all" `[VS 9]` | **Confirmed.** No business-unit sheet or column. `Department` exists only as a text column |
-| 4 | The workbook has shelf level and facings but not "the actual length, width, height of the package" `[VS 8]` | **Wrong.** `SKU Merchandising` carries `Package Width (in)`, `Package Height (in)`, `Package Depth (in)`, `Shelf Orientation` (Upright, Hanging, Lay-Down, Stacked), and `Stackable (Y/N)`. What is true is that Product Master carries **no** dimensions, so they sit on the SKU side, not the product side (E-3) |
+| 1 | Product and SKU are one-to-one `[VS 1]` | **Confirmed.** 5,990 rows each |
+| 2 | Category fields are flat columns `[VS 9]` | **Confirmed.** No subcategory, segment, or parent-child structure |
+| 3 | Business unit is not really there `[VS 9]` | **Confirmed.** `Department` is a text column only |
+| 4 | No package dimensions `[VS 8]` | **Wrong.** `SKU Merchandising` has width, height, depth, orientation, and stackable; Product Master has none (E-3) |
 
-**Other findings relevant to the contract (Scheme 2 `SKU Placements` and related sheets)**
-
-- `Placement Type` values: `Primary Shelf` 5,990, `Secondary/Impulse Display` 163 (all vendor-funded), `Cross-Merchandised` 19.
-- 6,009 of 6,172 placements have a null `End Date`. The 163 with an end date are the secondary displays.
-- 180 SKUs have two placements and 1 SKU has three. Every other SKU has exactly one. No SKU has zero.
-- `Shelf Level` includes `Floor` for the 163 floor-display placements. `Space ID (ref)` uses prefixes `RUN-`, `RIF-`, `RIC-`, `FD-`, `SVC-`, `PRD-`, `DELI`, `BKY-`.
-- 414 `Hanging` SKUs are placed on `Gondola Shelving` and 11 on `Floor Display`. No peg fixture exists.
-- Placement `Start Date` values follow the SKU's first-listed date, not reset dates (for example 2026-03-23 and 2023-02-17).
-- `Reset Cycle (months)` in Category Space Allocation includes values such as 20 and 24, outside the 3–12 range in `[VS 4]`.
-- No sheets exist for agreements, pegs, clip strips, end caps, or planogram versions.
-- The fixture sheets are per type (Gondolas, Gondola Sides, Bays, Shelf Runs, Bakery Case *, Floral Shelving *, Wall Shelf *, Floor Displays, Reach-In *, Deli, Service, Produce). Bakery space is named "Bakery Case" in the workbook and `BAKERY_SHELVING` in the contract.
+Other findings (v0.2): placement types `Primary Shelf` 5,990, `Secondary/Impulse Display` 163, `Cross-Merchandised` 19; placement start dates follow first-listed dates, not resets; reset cycles of 20 and 24 months; no agreement, peg, clip-strip, end-cap, or version sheets; 414 hanging SKUs on gondola shelving and 11 on floor displays.
 
 ---
 
 ## Part E — Cross-workstream flags
 
-These follow the project's drift rule: a change in one workstream can obligate another. None has been acted on.
+None has been acted on.
 
-**Simulation data workbook (Scheme 2), attributes the contract needs and the workbook lacks**
+**Workbook (Scheme 2) and generator: attributes the contract needs**
 
 | ID | Gap | Contract clause |
 |---|---|---|
-| E-1 | Agreements sheet (id, type, vendor, fee basis, rate, window). `Vendor Funded (Y/N)` becomes derived | 5.1, PLC-Q-2 |
-| E-2 | Placement `Extent` and `Offset` in place of the pair `Facings` and `Linear Space Assigned`. `Facings` becomes derived | 5.2, PLC-Q-1 |
-| E-3 | Package dimensions, form, `NonBoxSpec`, and case dimensions on **Product Master** (today on SKU Merchandising) | 4.1 |
-| E-4 | Peg sections, clip strips, and end-cap sides (`LEFT`, `RIGHT`) as space sheets. Hook count and hook depth | 3.4 |
-| E-5 | `clear_height_in` and `secured` on each shelf run and tier | 3.2, 3.5 |
-| E-6 | Category → space-node assignment as explicit data. Today implied by location text and category name | ASN-*, SN-INV-2 |
-| E-7 | Category hierarchy sheet (arbitrary depth) with `CategoryPolicy` fields per node. Category Space Allocation `Fixture Type` becomes `allowed_space_types` | 4.3 |
-| E-8 | Business-unit hierarchy sheet | 4.4 |
-| E-9 | Planogram versions sheet (kind, scope, cutoff, effective date, status, entries, home) | 6.5 |
-| E-10 | Reset calendar (chain-wide dates) | ST-INV-6, PLC-INV-14 |
-| E-11 | Whole-footprint space hierarchy: `Area` rows (sales floor, backroom, checkout, aisles) that reconcile to the building | 3.3 |
+| E-1 | Agreements (id, type, vendor, fee basis, rate, window) | 5.1 |
+| E-2 | Placement extent and offset instead of facings and linear space | 5.2, PLC-Q-1 |
+| E-3 | Package dimensions, form, non-box override, case dimensions on the product | 4.1 |
+| E-4 | Peg sections, clip strips, end-cap sides, hook counts and depths | 3.4 |
+| E-5 | `clear_height_in` and `secured` on every leaf (all leaf classes, D-27) | 3.2–3.5 |
+| E-6 | Category → space-node assignments as data | ASN-*, SN-INV-2 |
+| E-7 | Category hierarchy with policy fields per node; allowed space types must match temperature and exclude floor displays | 4.3, CAT-INV-9, CAT-INV-10 |
+| E-8 | Business-unit hierarchy | 4.4 |
+| E-9 | Planogram versions | 6.5 |
+| E-10 | Reset calendar | ST-INV-6, PLC-INV-14 |
+| E-11 | Whole-footprint `Area` rows that reconcile to the building | 3.3 |
 
 **Workbook columns the contract makes derived or changes**
 
 | ID | Item | Contract clause |
 |---|---|---|
-| E-12 | `Cross-Merchandised` placement type has no counterpart. Contract types are `PERMANENT`, `PROMOTIONAL`, `INCIDENTAL`. The 19 cross-merchandised rows need a mapping to one of the three (raise with Q-26) | Part 1 |
-| E-13 | `Floor` as a shelf level and `Fixture Type` / `Location Description` on placements should be derived from `Space ID`, not entered. Placement `Start Date`s need to be reset dates or revision dates. 414 + 11 hanging SKUs need peg homes (Q-13) | PLC-Q-2, PLC-INV-14 |
+| E-12 | `Cross-Merchandised` has no counterpart among `PERMANENT`, `PROMOTIONAL`, `INCIDENTAL` | Part 1 |
+| E-13 | Shelf level and fixture type on placements are derived; start dates must be reset or revision dates; 425 hanging SKUs need peg homes (Q-13) | PLC-Q-2, PLC-INV-14 |
+| E-17 | **(new)** Gondola orientation. The `Gondola Sides` sheet gives each gondola `Front` and `Back` long sides, and the `Gondolas` sheet names its left and right aisles "(End)". The contract now has the reverse (D-1) | 3.4, GDL-INV-* |
+| E-18 | **(new)** Id formats. The workbook uses `SID-00001` (five digits), `BAY-000001`, `RUN-`, `RIF-`, `RIC-`, `PRD-`, `DELI`, `BKY-`, and `FD-`. The contract has one prefix per class (ID-1) and six-digit numbers only for agreements, placements, and incidental placements (ID-2) | ID-1, ID-2 |
+| E-19 | **(new)** Shelf runs, door runs, and tiers must be stored top to bottom, and bays and doors numbered 1 … n with no gaps | BAY-INV-4, DOR-INV-3, DOR-INV-4, SVC-INV-2, SID-INV-1 |
 
 **Textbook and Methodology sheet**
 
 | ID | Item |
 |---|---|
-| E-14 | Record in the Methodology & Sources sheet: category, space, and business unit as arbitrary-depth hierarchies (T-2, T-3); paper shelf tags (T-7); slotting as ongoing rent (T-1) |
-| E-15 | Add a short fixtures section under textbook 2.2, or mark the fixture composition `[SIM]`/`[DISC]` in the Methodology sheet (T-10) |
-| E-16 | Textbook 2.4 says slotting fees are "upfront payments". If the ongoing-rent reading is adopted (T-1), the textbook sentence needs a revision or a note |
-
----
-
-## Part F — Carry-forward from a superseded draft
-
-A separate v0.2 draft of this contract and its discussion (written without the app-functionality file, with per-routine examples) has been retired. The entries below are the domain clauses and open questions from that draft that this contract does not already cover. Each entry is self-contained, because the draft itself is no longer kept. "A" below means that draft; its clause IDs are its own and are **not** IDs of this contract.
-
-The next run of the contract-creation prompt resolves every entry: it adopts it as a clause (logged as a D-n decision) or drops it (logged with the reason), and omits this part from the new discussion file.
-
-### CF-1. Gondola side orientation
-
-**Source in A:** A 2.4.1 (prose, GDL-INV-1, GDL-INV-2, SID-INV-2)
-
-**Clause(s), verbatim:**
-
-A Gondola is bordered by four aisles, named from a viewer at the front of the store facing the rear. In a grid layout `[TB 1.5]` its two long faces, the Gondola Sides, face the **left and right** aisles; its ends face the front and back aisles (C-6, Q-25). A Side is made of one or more Bays. A Bay has one Shelf Run per shelf level.
-
-| ID | Clause |
-|---|---|
-| GDL-INV-1 | `1 <= len(children) <= 2` and the sides' `facing` values are distinct |
-| GDL-INV-2 | `all(s.aisle_faced == (left_aisle if s.facing == "LEFT" else right_aisle) for s in children)` |
-| SID-INV-2 | `facing in ("LEFT", "RIGHT")` |
-
-**Behind it in A's discussion, verbatim:**
-
-#### C-6. Which fixtures exist, and which way a gondola faces
-
-- **Textbook:** Mentions locked cases for high-theft items `[TB 6.4]`, refrigerated and frozen display `[TB 4.4]`, and newer uses of space such as online-order staging and pickup lockers `[TB 1.6]`. It describes promotional visibility `[TB 7.3, 7.5]` and grid aisles `[TB 1.5]`.
-- **Discussion:**
-  - It names End Cap and checkout/impulse rack as space types, but neither is among the five physical archetypes.
-  - It says a gondola is bordered by Front, Back, Left, and Right aisles, as seen from the front of the store facing the rear.
-- **Conflict (new):** In a grid layout the gondolas run front to back, so their long faces (the sides that hold bays) face the left and right aisles, and the ends (where end caps go) face the front and back. The 0.1 draft had it the other way round.
-- **Contract:** Sides face LEFT and RIGHT. Only the five archetypes are modeled, and `secured` is a Boolean on each leaf. → **Q-16, Q-19, Q-25**
-
-**D-2. Gondola sides face the LEFT and RIGHT aisles (was FRONT and BACK in 0.1). (new)** See C-6 and Q-25.
-
-**Q-25. Gondola orientation. (new)** **Default: sides face LEFT and RIGHT; ends face FRONT and BACK (D-2).** Is that how you meant the four-aisle description? Should a gondola that runs side to side (for example, along the front racetrack) be allowed, with sides facing FRONT and BACK?
-
-**Apparent conflict with this contract:** The baseline (3.4) has the opposite geometry, grounded in `[VS 7]`: `FRONT`/`BACK` faces run the length of the gondola, and `LEFT`/`RIGHT` faces are the end caps. Adopting A's reading would also change GDL-INV-1..5, X-5, and Q-8/Q-16 in the baseline.
-
-### CF-2. Canonical (deterministic) allocation procedure
-
-**Source in A:** A 2.10.4 (GEN-14, `canonical_plan`, and the paragraph that follows it)
-
-**Clause(s), verbatim:**
-
-| ID | Clause |
-|---|---|
-| GEN-14 | **Canonical result.** `result == canonical_plan(self, categories, as_of)`, the procedure below. An implementation may compute it any way it likes, provided the result is identical `[SIM]` (D-1) |
-
-**`canonical_plan(store, categories, as_of)`** (normative, via GEN-14):
-
-1. Start the working state as the current model with every PRIMARY placement of a SKU whose category is in `categories` removed.
-2. For each category `c` in `categories`, in ascending `c.key` order:
-   1. Order `c.assigned_spaces` by `(policy.level_preference(l.shelf_level), l.id)` into `Lc`.
-   2. For each `s` of `c` in `S` order (descending score, then `sku_id`):
-      1. If `not s.in_season(as_of)`: `OUT_OF_SEASON`. Else, if `Lc` is empty: `NO_CATEGORY_SPACE`. Else, if no leaf of `Lc` accepts `s.orientation`: `INCOMPATIBLE_ORIENTATION`. Else, let `Fit = [l for l in Lc if fits_dimensionally(s, l)]`; if `Fit` is empty: `NO_DIMENSIONAL_FIT`.
-      2. Otherwise, for `f` from `T(s)` down to `c.min_facings_per_sku`, and for each `l` in `Fit` in order: let `g = 1` if `l` is a `Bin` else `f`. If `l` is a `Bin` with no placement in the working state, or `l` is linear and has a free interval of length ≥ `consumption(s, g, l)`, then plan `s` on `l` with `g` facings, at the start of the **first** such interval (offset `None` for a bin). Add it to the working state and stop searching for `s`.
-      3. If no position was found: `INSUFFICIENT_SPACE`.
-3. `under_target` and `delist_review` follow GEN-6 and GEN-12. Placements and `unplaced` follow `S` order (GEN-13).
-
-Full target facings take priority over a better level; the best level is chosen among positions that fit that facing count (Q-28). The canonical plan satisfies GEN-1..8 and GEN-11 by construction: each SKU is placed before every lower scorer in its category, and free space only shrinks afterward. They stay as separate clauses because each is independently checkable and traces to a textbook rule. If a case is ever found where `canonical_plan` breaks one of them, that is a defect in this contract to raise, not a choice for the implementation.
-
-**Behind it in A's discussion, verbatim:**
-
-**D-1. `generate_plan` now has exactly one correct answer (GEN-14, `canonical_plan`). (new)**
-
-- **Why:** You asked for examples that show the state after each call and can be turned directly into pytest cases. Under 0.1, many different plans satisfied every postcondition. For EX-STORE-1, for example, `SKU-C3` could legally go on the top, eye-level, or bottom shelf at several offsets. So no example could assert what `generate_plan` returns, and no fixture state after a reset could be fixed.
-- **What changed:** A greedy, deterministic procedure is now normative:
-  - categories in key order;
-  - within a category, SKUs by descending score;
-  - try target facings first, then fewer;
-  - leaves in shelf-level preference order, then leaf ID;
-  - leftmost free gap.
-
-  GEN-5..8 and GEN-11 remain as checkable properties that the procedure satisfies by construction. An independent check of the fixture found no case where it breaks one.
-- **Cost:** This reverses 0.1's default for Q-21 ("the contract constrains results, not the algorithm"). Better allocation algorithms, such as optimization or look-ahead, would now be contract changes, not implementation choices.
-- **Alternative:** keep the algorithm open and make examples assert only properties (GEN-1..13), with fixture states after a reset produced by whatever the implementation returns. The examples would then be weaker: no exact placements, and later examples couldn't reference `PLC-000004` being `SKU-C3` at offset 32.
-
-**Q-21. Contract strength vs. algorithm freedom.** Superseded by D-1. Confirm D-1 or revert.
-
-**Q-28. Facings vs. level priority. (new)** **Default: `canonical_plan` keeps target facings before it seeks a better level.** A top SKU gets its full target on a worse shelf rather than fewer facings at eye level. `[TB 2.3]` rewards both without ranking them. Reverse the order?
-
-Related A cross-workstream flag (Part C, item 15):
-
-15. **(new)** The allocation procedure (`canonical_plan`) is a simulation construct. If D-1 stands, a short worked example under Ch. 2.3 would give the textbook a concrete counterpart for "high-velocity, high-margin items earn more facings and eye-level placement."
-
-**Apparent conflict with this contract:** The baseline (6.2, Q-21) leaves the search to the implementation and constrains only properties (GEN-5..8, GEN-9 tie-breaks). The revised creation prompt now requires a single canonical result, so a procedure is needed; A's is written over A's model (each category's `assigned_spaces`, `Bin` special case, `T(s)` from A's POL-2) and would have to be restated over the baseline's pools, planes, extents, and `home`.
-
-### CF-3. Scarcity priority
-
-**Source in A:** A 2.10.4 (GEN-11)
-
-**Clause(s), verbatim:**
-
-| ID | Clause |
-|---|---|
-| GEN-11 | **Scarcity priority.** If `result.unplaced[s] == INSUFFICIENT_SPACE`, then for every placed `t` of the same category with `score(t.sku) < score(s)`: `s` can't take `t`'s place, i.e. `not (fits_dimensionally(s, t.space) and consumption(s, m, t.space) <= largest_block(t.space, without=t))` with `m` = min facings (1 for a bin). A higher scorer is never left out so a lower scorer can stay |
-
-**Behind it in A's discussion, verbatim:**
-
-No A discussion item; A's change list, item 6: 6. **New clauses:** GEN-11 (a higher scorer is never left unplaced in favor of a lower scorer), GEN-12/13 (delist review and ordering, moved from plan invariants), CAT-INV-8/9 (a category's allowed fixture types match its temperature zone), CAT-INV-10 (floor displays are never category space, which closes a gap where allocation could put a primary placement on a display), and ENUM-4 (physical shelf order).
-
-**Apparent conflict with this contract:** None in substance; the baseline has no equivalent. ID clash: the baseline's GEN-11 is home designation, so adopting this needs a new ID (IDs are never reused).
-
-### CF-4. Unplaced-reason precedence
-
-**Source in A:** A Part 1 (ENUM-5) and 2.10.4 (GEN-4)
-
-**Clause(s), verbatim:**
-
-| ID | Clause |
-|---|---|
-| ENUM-5 | `UnplacedReason.precedence` (query): the declaration order above, 1..5. When several reasons are true for a SKU, the one with the lowest precedence is reported (GEN-4) `[SIM]` |
-| GEN-4 | **Reasons, by precedence (ENUM-5).** For in-season `s ∈ S` of category `c`: if `c.assigned_spaces == ()` then `NO_CATEGORY_SPACE`; else if no assigned leaf accepts `s.orientation` then `INCOMPATIBLE_ORIENTATION`; else if `not any(fits_dimensionally(s, l) for l in c.assigned_spaces)` then `NO_DIMENSIONAL_FIT`. In each of those cases `result.unplaced[s]` is exactly that reason. Otherwise `s` is placed or `result.unplaced[s] == INSUFFICIENT_SPACE`. `INSUFFICIENT_SPACE` further ensures that no leaf in `c.assigned_spaces` can take `s` at `c.min_facings_per_sku` (1 for a bin) in the planned state |
-
-**Behind it in A's discussion, verbatim:**
-
-No A discussion item; A's change list, item 5: 5. **Unplaced-reason precedence** (ENUM-5, GEN-4). 0.1 allowed two reasons to be true at once, for example a hanging SKU is both `INCOMPATIBLE_ORIENTATION` and `NO_DIMENSIONAL_FIT`.
-
-**Apparent conflict with this contract:** The baseline's GEN-4 states each reason as an implication, so two reasons can hold at once. Its `UnplacedReason` values differ (`NO_SPACE_IN_PLANE` replaces `INCOMPATIBLE_ORIENTATION`), so a precedence order would be restated over the baseline's five values.
-
-### CF-5. Delist-review threshold and order
-
-**Source in A:** A 2.10.4 (GEN-12)
-
-**Clause(s), verbatim:**
-
-| ID | Clause |
-|---|---|
-| GEN-12 | **Delist review.** `result.delist_review` is the SKUs of `S` (placed or not) whose `assortment_status == DELIST_CANDIDATE`, or whose 0-based rank in their category's in-scope SKUs by ascending `(score, sku_id)` is `< floor(n / 10)` (bottom decile; `n` = the category's in-scope count). It is ordered by `(category.key, score, sku_id)` `[TB 2.3, 2.6]`. The decile rule is `[SIM]` (Q-26) |
-
-**Behind it in A's discussion, verbatim:**
-
-**Q-26. Delist-review threshold. (new)** **Default: the bottom decile uses `floor(n/10)`, so a category with fewer than 10 in-scope SKUs flags only explicit DELIST_CANDIDATEs.** 0.1's wording, which rounded up, would flag the weakest SKU of every small category, including a category's only SKU.
-
-**Apparent conflict with this contract:** The baseline's PLAN-INV-6 says "bottom decile of their pool" with the threshold left `[SIM]` and unstated, and ranks within the pool rather than the category. A's `floor(n / 10)` rule and ordering would fill that gap.
-
-### CF-6. Category temperature zone matches its allowed fixture types
-
-**Source in A:** A 2.6 (CAT-INV-8, CAT-INV-9)
-
-**Clause(s), verbatim:**
-
-| ID | Clause |
-|---|---|
-| CAT-INV-8 | `len(allowed_fixture_types) >= 1` |
-| CAT-INV-9 | `all(ft.temperature_zone == temperature_zone for ft in allowed_fixture_types)` — a refrigerated category can't be allowed ambient fixtures `[TB 4.4]` |
-
-**Behind it in A's discussion, verbatim:**
-
-#### C-11. Temperature and the cold chain
-
-- **Textbook:** An unbroken cold chain to the shelf is a safety and shrink requirement `[TB 4.4]`. Perishables sit on the perimeter `[TB 1.3]`.
-- **Discussion:** The archetypes imply temperature (reach-in cooler, reach-in freezer) but never state it.
-- **Contract:** Temperature is derived from fixture type (ENUM-2). A category's allowed fixture types must match its temperature (CAT-INV-9), so a refrigerated category can't even be offered ambient shelving. → **Q-11**
-
-**Apparent conflict with this contract:** The baseline checks temperature only per assignment (ASN-PRE-4, LS-INV-7). It has no policy-level invariant, so a refrigerated category can be configured with ambient `allowed_space_types`. Would be restated over space types and TYP-2.
-
-### CF-7. Floor displays are never category space
-
-**Source in A:** A 2.6 (CAT-INV-10)
-
-**Clause(s), verbatim:**
-
-| ID | Clause |
-|---|---|
-| CAT-INV-10 | `FixtureType.FLOOR_DISPLAY not in allowed_fixture_types` — floor displays are never category (primary) space; they carry secondary placements only (FD-INV-2) `[SIM]` (Q-16) |
-
-**Behind it in A's discussion, verbatim:**
-
-**Q-16. End caps and checkout racks.** **Default: not modeled. Floor displays are never category space (CAT-INV-10, new).** Should an end cap be a child of a Gondola facing the Front or Back aisle? Is a checkout rack a floor display?
-
-**Apparent conflict with this contract:** The baseline makes floor displays promotional-only (FD-INV-2) but does not stop `FLOOR_DISPLAY` from appearing in a category's `allowed_space_types`, so `assign_space` can assign a display to a category. A's clause closes that.
-
-### CF-8. Physical order and positive dimensions of fixture parts
-
-**Source in A:** A Part 1 (ENUM-4) and 2.4 (BAY-INV-3, BAY-INV-4, RUN-INV-2, SVC-INV-3, TIER-INV-2)
-
-**Clause(s), verbatim:**
-
-| ID | Clause |
-|---|---|
-| ENUM-4 | `ShelfLevel.physical_order` (query): TOP = 1, EYE_LEVEL = 2, MIDDLE = 3, BOTTOM = 4, top to bottom `[SIM]` |
-| BAY-INV-3 | `position >= 1 and width_in > 0` |
-| BAY-INV-4 | `[r.shelf_level.physical_order for r in children] == [1, 2, 3, 4]` — top to bottom |
-| RUN-INV-2 | `depth_in > 0 and clear_height_in > 0` |
-| SVC-INV-3 | tier shelf levels are distinct and `[t.shelf_level.physical_order for t in children]` is strictly increasing |
-| TIER-INV-2 | `depth_in > 0 and clear_height_in > 0` |
-
-**Behind it in A's discussion, verbatim:**
-
-No A discussion item. Related A cross-workstream flag (Part C, item 10):
-
-10. **(new)** Door numbers, bay positions, and tier levels in physical order (BAY-INV-4, SVC-INV-3).
-
-**Apparent conflict with this contract:** The baseline requires each shelf level once per bay or door (BAY-INV-1, DOR-INV-1) and distinct tier levels (SVC-INV-1), but no top-to-bottom order and no positive width, depth, or clear height.
-
-### CF-9. `add_months` definition
-
-**Source in A:** A 2.6 (`add_months`, ADDM-PRE-1, ADDM-1)
-
-**Clause(s), verbatim:**
-
-| ID | Kind | Clause |
-|---|---|---|
-| ADDM-PRE-1 | require | `n >= 0` |
-| ADDM-1 | ensure | `(result.year * 12 + result.month) == (d.year * 12 + d.month + n)` and `result.day == min(d.day, days_in_month(result.year, result.month))` |
-
-**Behind it in A's discussion, verbatim:**
-
-No A discussion item.
-
-**Apparent conflict with this contract:** The baseline's CAT-Q-3 calls `add_months` but never defines it, including the month-end case.
-
-### CF-10. Leaf order when a category mixes units
-
-**Source in A:** A discussion only
-
-**Clause(s), verbatim:**
-
-A's POL-4 (the baseline's POL-4 has the same `None` rule):
-
-| ID | Kind | Clause |
-|---|---|---|
-| POL-4 | ensure | `level_preference(l) == l.preference_rank` for a shelf level, and `0` for `None` (unranked leaves sort first) |
-
-**Behind it in A's discussion, verbatim:**
-
-**Q-31. Leaf order when a category mixes units. (new)** **Default: unranked leaves (bins, displays) sort before ranked shelves (`level_preference(None) == 0`).** It only matters if a category is assigned both bins and shelves. Is that possible, for example packaged salad on a shelf next to loose produce?
-
-**Apparent conflict with this contract:** None apparent; the baseline gives no leaf ordering at all. Matters only if a canonical procedure (CF-2) is adopted.
-
-### CF-11. Season granularity
-
-**Source in A:** A discussion only
-
-**Clause(s), verbatim:**
-
-A's representation: | SKU-INV-9 | `season_months is None or (len(season_months) >= 1 and season_months <= set(range(1, 13)))` |
-
-| SKU-Q-1 | `in_season(on)`: `result == (season_months is None or on.month in season_months)` |
-
-**Behind it in A's discussion, verbatim:**
-
-**Q-29. Season representation. (new)** **Default: `season_months`, a set of months, or None for year-round.** Do you need finer windows (weeks or specific dates, e.g. holidays), or a category-level season for OCCASIONAL_SEASONAL categories?
-
-**Apparent conflict with this contract:** The baseline represents a season as a `(first_month, last_month)` tuple that may wrap the year, not a set of months. The question (finer windows, or a category-level season) is open in both.
-
-### CF-12. Facings across bay boundaries
-
-**Source in A:** A discussion only
-
-**Clause(s), verbatim:**
-
-(no clause)
-
-**Behind it in A's discussion, verbatim:**
-
-**Q-17. Facings across bay boundaries.** **Default: no; a placement sits within one leaf.** Allow a SKU to span an upright?
-
-**Apparent conflict with this contract:** None apparent; the baseline also places each placement in one leaf, but does not ask the question.
-
-### CF-13. Grain of the `secured` attribute
-
-**Source in A:** A discussion only
-
-**Clause(s), verbatim:**
-
-(no clause)
-
-**Behind it in A's discussion, verbatim:**
-
-**Q-19. Secured/locked space.** **Default: `secured` is set per leaf.** Is secured a whole fixture, a door, or a single shelf?
-
-**Apparent conflict with this contract:** None apparent; the baseline also sets `secured` per leaf, but does not ask the question.
+| E-14 | Methodology & Sources: hierarchies of arbitrary depth (T-2, T-3); paper shelf tags (T-7); slotting as ongoing rent (T-1) |
+| E-15 | A short fixtures section under textbook 2.2, or mark the fixture composition `[DISC]`/`[SIM]` in the Methodology sheet (T-10). If added, it should state the front-to-back gondola orientation of D-1 |
+| E-16 | Textbook 2.4's "upfront payments" needs a note if the ongoing-rent reading stands (T-1) |
+| E-20 | **(new)** The canonical allocation procedure (D-2) is a simulation construct. A short worked example under textbook 2.3 would give it a counterpart: high-velocity, high-margin items earn more facings and eye-level placement |
+| E-21 | **(new)** Textbook 6.4 mentions locked cases for high-theft items. If the grain of `secured` changes (Q-30), the textbook sentence may need a matching note |
