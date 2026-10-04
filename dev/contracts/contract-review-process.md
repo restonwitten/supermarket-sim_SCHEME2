@@ -18,7 +18,7 @@
     2. In the text / markdown editor, open the file of topics available to chat about named "contract_review_topic_introductions_to_chat.md".  Select the text of the topic to be added to the chat and cut it from the file.
     3. In the window displaying the Claude text-based UI under the development project (the Supermarket Operations project in this case):
         1. Create a new chat (aka Conversation) as follows:
-            1. Read dev/prompts/contract_review_chat_PROMPT.txt from a fresh clone of the SCHEME2 repo.
+            1. Enter the message: "Read dev/prompts/contract_review_chat_PROMPT.txt from a fresh clone of the SCHEME2 repo."
             2. Paste the text of the topic introduction in the initial message box presented in the conversation.
         2. Change the title of the conversation to a title of the form "Contract Review Chat_<contract_version>_<date_started>", where <date_started> is in the MMDDYYYY format.
         3. Send the message to Claude.
