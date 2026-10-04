@@ -85,7 +85,14 @@ When I say the chat has ended, produce a downloadable markdown file:
   opening wording and one "### Claude:" section with the final detailed discussion
   and the final versions of the two sections. Fold follow-ups within the item
   into that single answer rather than recording them as separate exchanges.
-- Include only CRCT items discussed in this session, not items from an uploaded
+- One file per day. Before producing the file, pull the clone again and check
+  dev/contracts/contract_review_chats/ for a file with the same name (an earlier
+  session started the same day). If one exists, the file you produce is that
+  file's content unchanged plus this session's CRCT items, all in CRCT-number
+  order. If a CRCT item of this session continues an item already in that file,
+  fold this session's discussion into that item's single "### Claude:" section and
+  revise its two closing sections, rather than adding a second entry.
+- Never include items from review-chat files of other dates or from an uploaded
   prior file. A reused number keeps its original number and title here.
 - If I repeat the request, overwrite the same file.
 
