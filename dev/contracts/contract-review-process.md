@@ -14,9 +14,10 @@
 
 1. In the course of reading the last version of the Contract and Contract Discussion created, Reston writes the topic title and text of a Contract Review Topic Chat Introduction in the set of Contract Review Topic Introductions To Chat that have not yet been submitted to chat with Claude.
 2. When there is at least one Contract Review Topic to be discussed and Reston is ready to conduct a new Contract Review Chat with Claude, Reston performs the following:
-    1. Position the window displaying Claude UI next to the window displaying the text/markdown editor of choice.
-    2. In the text / markdown editor, open the file of topics available to chat about named "contract_review_topic_introductions_to_chat.md".  Select the text of the topic to be added to the chat and cut it from the file.
-    3. In the window displaying the Claude text-based UI under the development project (the Supermarket Operations project in this case):
+    1. Commit and push any changes related to the contract review chats and this process description to the repo's origin.
+    2. Position the window displaying Claude UI next to the window displaying the text/markdown editor of choice.
+    3. In the text / markdown editor, open the file of topics available to chat about named "contract_review_topic_introductions_to_chat.md".  Select the text of the topic to be added to the chat and cut it from the file.
+    4. In the window displaying the Claude text-based UI under the development project (the Supermarket Operations project in this case):
         1. Create a new chat (aka Conversation) as follows:
             1. Enter the message: "Read dev/prompts/contract_review_chat_PROMPT.txt from a fresh clone of the SCHEME2 repo."
             2. Paste the text of the topic introduction in the initial message box presented in the conversation.
@@ -26,6 +27,6 @@
         5. Continue the exchange with Claude on this topic or move on to the next topic or end the chat.
         6. Upon completing the last topic to be covered in the chat, tell Claude to:
             1. Format the text of this chat per the prompt given at the beginning of the chat session, to be downloaded by Reston.
-    4. Reston puts the file at the directory at dev/contracts/contract_review_chats/, commits it and pushes it to the origin.
+    5. Reston puts the file at the directory at dev/contracts/contract_review_chats/, commits it and pushes it to the origin.
 
    
