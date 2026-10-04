@@ -5,8 +5,7 @@ This session reviews the Scheme 2 Design-by-Contract specification for the
 supermarket sim. Each review topic is discussed, and the discussion ends in
 recommended changes to the contract-creation process. Nothing is applied in this
 session unless I explicitly ask; changes are batched into a future contract
-rebuild. The process this session belongs to is described in
-dev/contracts/contract-review-process.md.
+rebuild.
 
 Sources (read before answering any topic)
 - Clone github.com/restonwitten/supermarket-sim_SCHEME2 at the start of the session
@@ -15,11 +14,6 @@ Sources (read before answering any topic)
   - dev/contracts/sim-contract-discussion.md (its companion discussion file)
   - dev/contracts/voice-session-sim-design-extract.md (the [VS n] source)
   - dev/prompts/create_contract_PROMPT.txt (the prompt that generates the contract)
-  - every contract-review-chat_*.md file in dev/contracts/contract_review_chats/
-    (the prior review-chat files)
-- Do not treat contract_review_topic_introductions_to_chat.md as a source. It is my
-  queue of topics not yet discussed; topics reach the session only through my
-  messages.
 - Cite contract clauses by ID (e.g. BU-INV-1, SN-Q-1) and give section numbers.
 - Disregard Scheme 1, dev/supermarket_model_diagram.vpp, and the workbooks unless
   a topic asks for them.
@@ -27,9 +21,13 @@ Sources (read before answering any topic)
 Topics
 - Each topic is numbered CRCT-n (Contract Review Chat Topic) and has a title,
   e.g. "CRCT-6 - <title>".
-- Numbering is continuous across all review chats. When I open a topic as
-  "CRCT-n", assign the next number after the highest CRCT number in the prior
-  review-chat files and in this session.
+- Number assignment, whenever I write "CRCT-n" or start an item without a number:
+  1. Search past CRCT titles in dev/contracts/contract_review_chats/*.md, any
+     uploaded review-chat file, and this session.
+  2. If a past item has the same title (ignoring case and spacing), reuse its
+     number; the item continues that topic.
+  3. Otherwise assign the highest CRCT number found in those sources plus one.
+  No two CRCT numbers may share a title.
 - A topic may run over several exchanges until I start the next one.
 
 How to answer a topic
@@ -39,11 +37,8 @@ How to answer a topic
   and say which one each point is.
 - Make a reasonable call and flag your assumptions; don't present options that
   only cost time.
-- Note interactions with earlier CRCT items, whether from this session or from the
-  prior review-chat files (e.g. a renumbering that another item introduces, or a
-  later item that supersedes an earlier recommendation). Some early items predate
-  the two closing sections below; in those cases, take their recommendations from
-  the discussion text.
+- Note interactions with earlier CRCT items in this session or an uploaded file
+  (e.g. a renumbering that another item introduces).
 - End your first response to each new CRCT item with these two sections, after
   the detailed discussion:
   "Recommended Changes to Contract Creation:" — one line per change, giving changes
@@ -64,7 +59,6 @@ Standing decisions
   domain structures (space, space type, business unit, product category); "tree"
   is for the structural class (TreeNode) and its terms.
 - File names in the repo stay constant; Git handles versioning.
-- You do not modify the repo. I make all commits.
 
 Summaries
 - No cross-item summary by default. Produce one (grouped by CRCT title, each with
@@ -74,14 +68,15 @@ Summaries
 End of session
 When I say the chat has ended, produce a downloadable markdown file:
 - Name: contract-review-chat_v<contract version>_<MMDDYYYY>.md, using the contract
-  version from sim-contract.md's title and the date the session started.
+  version from sim-contract.md's title and today's date.
 - Header: "# Contract Review Chat v<version>_<MMDDYYYY>", then the line
   "CRCT - Contract Review Chat Topic".
 - Each topic: "## CRCT-n - <title>", then one "### Reston:" section with my
   opening wording and one "### Claude:" section with the final detailed discussion
   and the final versions of the two sections. Fold follow-ups within the item
   into that single answer rather than recording them as separate exchanges.
-- Include only this session's CRCT items, not items from prior review-chat files.
+- Include only CRCT items discussed in this session, not items from an uploaded
+  prior file. A reused number keeps its original number and title here.
 - If I repeat the request, overwrite the same file.
 
 Style
