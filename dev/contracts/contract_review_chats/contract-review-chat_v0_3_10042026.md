@@ -109,3 +109,54 @@ What doesn't change: the domain prose that says "hierarchy", the inheritance rul
 - `HierarchyNode` becomes `TreeNode` throughout (18 in the contract, 2 in the discussion file).
 - `HN-` clause IDs and `P.HN_*` predicate names become `TN-` and `P.TN_*`, including in MON-7 and Appendix A.
 - Domain prose keeps "hierarchy"; `SpaceNode` and `CategoryNode` are unchanged.
+
+## CRCT-6 - Product Category Reference - Product vs SKU
+
+### Reston:
+
+How does the contract describe the association between products and product categories?
+
+It seems to me that the product category leaf should be referenced from the product. Why would we decide to put it on the SKU? All SKUs for a product would have the same product code. No?
+
+### Claude:
+
+**What the contract does now.** `Product` (4.1) has no product-category attribute. The association runs through `SKU` (4.2):
+
+- SKU → Product: `SKU.product`. The reference goes one way only. PROD-INV-3 makes `Product.skus` derived, and one product may have several SKUs.
+- SKU → Product Category: `SKU.category: CategoryNode`, which must be a leaf (SKU-NEW-PRE-1, SKU-INV-9; leaf-only is discussion default Q-3, grounded `[SIM]`).
+- `CategoryNode.skus` holds the SKUs attached exactly to a node and is non-empty only on leaves (CAT-INV-7). `subtree_skus()` unions them over the subtree (CAT-Q-5).
+- `SKU.department` is `category.root()` (SKU-INV-6).
+- ST-INV-4 and BUILD-PRE-4 require each SKU's category to be in the store's hierarchies.
+- Through `sku.category.policy()`, the SKU gets its facing bounds and other policy fields (PLC-INV-10, POL-2, GEN-4, GEN-13).
+
+**This is wrong in the contract, not just a matter of wording.** Product Category is GS1 GPC (CRCT-2), and GPC classifies the product: the brick is a fact about the GTIN/UPC, like brand and dimensions. Every SKU of a product has the same brick, so a SKU-level reference is redundant. It also permits an inconsistent state, two SKUs of one product under different product categories, which no clause forbids.
+
+**Why the contract put it on the SKU.** Neither the discussion file nor `create_contract_PROMPT.txt` records a rationale. The implicit logic is the contract's own split: Product answers "what is this", SKU answers "how we stock, price, and shelve it here". The generator read the hierarchy as a retailer merchandising hierarchy rather than a product classification. That was plausible because the hierarchy carries space policy (facings, elasticity, allowed space types, reset cycle).
+
+That distinction is real in retail, since a retailer's merchandise hierarchy can diverge from GPC. Under the adopted design, though, the retailer-specific layer is the department → Product Category set mapping (CRCT-1, CRCT-2), not a per-SKU assignment. So nothing justifies the SKU-level link.
+
+**Assumption.** No two SKUs of one product need different product-category policy. In a single-store sim this holds. It would matter only if SKUs later represent the same product across stores or formats, and then the difference belongs to the business unit, not the product category.
+
+**Interactions with earlier items:**
+
+- CRCT-2 ("SKUs attach to Bricks") and CRCT-3 ("the leaf category that SKUs attach to is the GPC Brick") are superseded on attachment: Products attach to Bricks, and SKUs inherit through their product.
+- CRCT-1's `SKU.business_unit()` rule (the department whose set contains an ancestor-or-self of the SKU's product category) still holds, read through `sku.product.product_category`. CRCT-1's removal of `SKU.department` / SKU-INV-6 still stands.
+- CRCT-2's frozen-as-attribute risk is unaffected in placement. If a mapping entry becomes "brick plus attribute value", the attribute is product-level as well.
+- CRCT-5: the class name `CategoryNode` is left as CRCT-5 decided. The attribute is named `product_category` per the terminology rule.
+
+**Recommended Changes to Contract Creation:**
+
+- Prompt: `Product` references its Product Category (a GPC Brick, leaf only) as `product_category`. Product Category is a product-level classification fact, not a per-SKU merchandising choice.
+- Prompt: `SKU` stores no product-category reference. `SKU.product_category` is a query delegated to `product`, like brand and manufacturer.
+- Prompt: the product-category node's derived membership is its products. SKU sets under a node are derived through those products.
+- Prompt: name the attribute `product_category`, never bare `category`.
+
+**Effect on Contract Creation Products of Recommended Changes to Contract Creation:**
+
+- 4.1 `Product`: creation gains `product_category`, with a new precondition and invariant that it is a Brick/leaf. PROD-INV-3 is unchanged.
+- 4.2 `SKU`: `category` is removed from creation and stored queries, and `product_category` is added under "delegated to product". SKU-NEW-PRE-1 loses its category clause. SKU-INV-9 moves to `Product`. SKU-INV-10 adds `product_category == product.product_category`.
+- 4.3 `CategoryNode`: `skus` becomes `products` (derived). CAT-INV-7 is restated over products. CAT-Q-5 `subtree_skus()` is derived via products.
+- `s.category.policy()` becomes `s.product_category.policy()` in PLC-INV-10, POL-2, GEN-4, GEN-13, and D-6.
+- ST-INV-4 and BUILD-PRE-4: the product's `product_category`, not the SKU's, must be in the hierarchy.
+- Fixture EX-STORE-1: the `_PRODUCTS` rows carry the product category, and the SKU rows drop it. SKU examples (`SKU("SKU-X", a.product, a.category, ...)`) lose the category argument. The non-leaf counter-example moves to a `Product` creation.
+- Discussion file: Q-3 is restated as Product-level and leaf-only, and a decision records the move with its single-store assumption.
